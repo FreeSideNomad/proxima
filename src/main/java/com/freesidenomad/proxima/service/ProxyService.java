@@ -21,7 +21,7 @@ public class ProxyService {
     private static final Logger logger = LoggerFactory.getLogger(ProxyService.class);
 
     @Autowired
-    private ProximaProperties proximaProperties;
+    private ConfigurationService configurationService;
 
     private final WebClient webClient;
 
@@ -36,7 +36,7 @@ public class ProxyService {
     public CompletableFuture<ResponseEntity<String>> forwardRequest(
             String method, String path, HttpServletRequest originalRequest, String body) {
 
-        String targetUrl = proximaProperties.getDownstream().getUrl() + path;
+        String targetUrl = configurationService.getDownstreamUrl() + path;
         logger.debug("Forwarding {} request to: {}", method, targetUrl);
 
         HttpHeaders headers = buildHeaders(originalRequest);
@@ -62,8 +62,9 @@ public class ProxyService {
             }
         });
 
-        if (proximaProperties.getHeaders() != null) {
-            proximaProperties.getHeaders().forEach((key, value) -> {
+        Map<String, String> currentHeaders = configurationService.getCurrentHeaders();
+        if (currentHeaders != null) {
+            currentHeaders.forEach((key, value) -> {
                 logger.debug("Adding custom header: {} = {}", key, value);
                 headers.set(key, value);
             });

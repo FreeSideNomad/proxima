@@ -10,9 +10,11 @@ services:
       - ./config:/app/config:ro
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - PROXIMA_DOWNSTREAM_URL=http://httpbin.org
-      - PROXIMA_HEADERS_AUTHORIZATION=Bearer sample-jwt-token-from-docker
-      - PROXIMA_HEADERS_X-USER-ROLE=docker-user
+      - PROXIMA_DOWNSTREAM_URL=http://httpbin:80
+      - PROXIMA_ACTIVE_PRESET=admin_user
+      - PROXIMA_ADMIN_AUTH=Bearer docker-admin-jwt-token
+      - PROXIMA_USER_AUTH=Bearer docker-user-jwt-token
+      - PROXIMA_API_AUTH=Bearer docker-api-jwt-token
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s

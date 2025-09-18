@@ -13,9 +13,26 @@ management:
 proxima:
   downstream:
     url: http://httpbin.org
-  headers:
-    authorization: "Bearer sample-jwt-token"
-    x-user-role: "admin"
+  active-preset: admin_user
+  presets:
+    - name: admin_user
+      display-name: "Admin User"
+      headers:
+        Authorization: "Bearer admin-jwt-token"
+        X-User-Role: "admin"
+        X-User-ID: "admin-001"
+    - name: regular_user
+      display-name: "Regular User"
+      headers:
+        Authorization: "Bearer user-jwt-token"
+        X-User-Role: "user"
+        X-User-ID: "user-001"
+    - name: api_client
+      display-name: "API Client"
+      headers:
+        Authorization: "Bearer api-client-token"
+        X-Client-Type: "api"
+        X-Rate-Limit: "1000"
 
 logging:
   level:

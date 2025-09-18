@@ -1,14 +1,17 @@
 # Proxima - JWT Header Injection Reverse Proxy
 
-**Stage 1 MVP**: Basic reverse proxy with static header injection
+**Stage 2**: Configuration file support with multiple header presets
 
 ## Features
 
 - ✅ Reverse proxy functionality for all HTTP methods
-- ✅ Static header injection (configurable via YAML/environment variables)
+- ✅ YAML-based configuration with multiple header presets
+- ✅ Named presets (admin_user, regular_user, api_client)
+- ✅ Dynamic preset switching via REST API
+- ✅ Configuration validation
 - ✅ Health check endpoints
 - ✅ Docker support with volume mapping
-- ✅ Unit and integration tests
+- ✅ Comprehensive unit and integration tests
 
 ## Quick Start
 
@@ -22,6 +25,18 @@
 2. **Test the proxy**:
    ```bash
    curl -X GET http://localhost:8080/proxy/anything
+   ```
+
+3. **Switch presets via API**:
+   ```bash
+   # List all presets
+   curl http://localhost:8080/api/config/presets
+
+   # Get current active preset
+   curl http://localhost:8080/api/config/active-preset
+
+   # Switch to regular user preset
+   curl -X POST http://localhost:8080/api/config/presets/regular_user/activate
    ```
 
 ### Docker
@@ -41,8 +56,10 @@
 ### Environment Variables
 
 - `PROXIMA_DOWNSTREAM_URL`: Target server URL (default: http://httpbin.org)
-- `PROXIMA_HEADERS_AUTHORIZATION`: Authorization header value
-- `PROXIMA_HEADERS_X_USER_ROLE`: Custom user role header
+- `PROXIMA_ACTIVE_PRESET`: Active preset name (default: admin_user)
+- `PROXIMA_ADMIN_AUTH`: Admin authorization token
+- `PROXIMA_USER_AUTH`: Regular user authorization token
+- `PROXIMA_API_AUTH`: API client authorization token
 
 ### Volume Configuration
 
@@ -52,10 +69,20 @@ Mount a config directory to `/app/config` with your custom `application.yml`:
 proxima:
   downstream:
     url: http://your-api-server.com
-  headers:
-    authorization: "Bearer your-jwt-token"
-    x-user-role: "admin"
-    x-custom-header: "custom-value"
+  active-preset: admin_user
+  presets:
+    - name: admin_user
+      display-name: "Admin User"
+      headers:
+        Authorization: "Bearer admin-jwt-token"
+        X-User-Role: "admin"
+        X-User-ID: "admin-001"
+    - name: regular_user
+      display-name: "Regular User"
+      headers:
+        Authorization: "Bearer user-jwt-token"
+        X-User-Role: "user"
+        X-User-ID: "user-001"
 ```
 
 ## Testing
@@ -79,9 +106,19 @@ Client → Proxima Proxy → Downstream Service
          (injects headers)
 ```
 
+## API Endpoints
+
+### Configuration Management
+- `GET /api/config/presets` - List all header presets
+- `GET /api/config/presets/{name}` - Get specific preset
+- `GET /api/config/active-preset` - Get currently active preset
+- `POST /api/config/presets/{name}/activate` - Switch active preset
+- `GET /api/config/headers` - Get current headers being injected
+- `GET /api/config/info` - Get configuration summary
+- `GET /api/config/validate` - Validate current configuration
+
 ## Next Stages
 
-- Stage 2: Configuration file support with multiple presets
-- Stage 3: Web UI for configuration management
+- Stage 3: Web UI for configuration management (LCARS theme)
 - Stage 4: JWT token generation utility
 - Stage 5: Advanced features (key rotation, metrics)

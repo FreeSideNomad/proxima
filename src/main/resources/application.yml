@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+proxima:
+  downstream:
+    url: http://httpbin.org
+  headers:
+    authorization: "Bearer sample-jwt-token"
+    x-user-role: "admin"
+
+logging:
+  level:
+    com.freesidenomad.proxima: DEBUG
+    org.springframework.web: INFO

@@ -1,0 +1,21 @@
+proxima:
+  downstream:
+    url: ${PROXIMA_DOWNSTREAM_URL:http://httpbin:80}
+  headers:
+    authorization: ${PROXIMA_HEADERS_AUTHORIZATION:Bearer sample-jwt-token}
+    x-user-role: ${PROXIMA_HEADERS_X_USER_ROLE:admin}
+    x-forwarded-by: "Proxima-Proxy"
+
+logging:
+  level:
+    com.freesidenomad.proxima: INFO
+    org.springframework.web: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

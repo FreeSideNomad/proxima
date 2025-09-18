@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  proxima:
+    build: .
+    container_name: proxima-proxy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/app/config:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - PROXIMA_DOWNSTREAM_URL=http://httpbin.org
+      - PROXIMA_HEADERS_AUTHORIZATION=Bearer sample-jwt-token-from-docker
+      - PROXIMA_HEADERS_X-USER-ROLE=docker-user
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Example downstream service for testing
+  httpbin:
+    image: kennethreitz/httpbin:latest
+    container_name: httpbin-test
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: proxima-network

@@ -24,6 +24,19 @@ proxima:
         X-Client-Type: "api"
         X-Rate-Limit: "1000"
         X-Forwarded-By: "Proxima-Proxy"
+  routes:
+    - path-pattern: "/api/users/**"
+      target-url: ${PROXIMA_USERS_SERVICE_URL:http://localhost:8081}
+      description: "User management service"
+      enabled: ${PROXIMA_USERS_SERVICE_ENABLED:true}
+    - path-pattern: "/api/invoices/**"
+      target-url: ${PROXIMA_INVOICES_SERVICE_URL:http://localhost:8082}
+      description: "Invoice processing service"
+      enabled: ${PROXIMA_INVOICES_SERVICE_ENABLED:true}
+    - path-pattern: "/api/auth/**"
+      target-url: ${PROXIMA_AUTH_SERVICE_URL:http://localhost:8083}
+      description: "Authentication service"
+      enabled: ${PROXIMA_AUTH_SERVICE_ENABLED:true}
 
 logging:
   level:

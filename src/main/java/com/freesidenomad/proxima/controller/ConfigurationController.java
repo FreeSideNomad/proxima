@@ -1,7 +1,9 @@
 package com.freesidenomad.proxima.controller;
 
 import com.freesidenomad.proxima.model.HeaderPreset;
+import com.freesidenomad.proxima.model.RouteRule;
 import com.freesidenomad.proxima.service.ConfigurationService;
+import com.freesidenomad.proxima.service.RouteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,9 @@ public class ConfigurationController {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private RouteService routeService;
 
     @GetMapping("/presets")
     public ResponseEntity<List<HeaderPreset>> getAllPresets() {
@@ -83,7 +88,9 @@ public class ConfigurationController {
                 "downstreamUrl", configurationService.getDownstreamUrl(),
                 "activePreset", configurationService.getActivePresetName(),
                 "totalPresets", configurationService.getAllPresets() != null ?
-                               configurationService.getAllPresets().size() : 0
+                               configurationService.getAllPresets().size() : 0,
+                "totalRoutes", routeService.getRouteCount(),
+                "enabledRoutes", routeService.getEnabledRouteCount()
         );
         return ResponseEntity.ok(info);
     }
@@ -98,5 +105,31 @@ public class ConfigurationController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/routes")
+    public ResponseEntity<List<RouteRule>> getAllRoutes() {
+        List<RouteRule> routes = routeService.getAllRoutes();
+        return ResponseEntity.ok(routes != null ? routes : List.of());
+    }
+
+    @GetMapping("/routes/test/{path}")
+    public ResponseEntity<Map<String, Object>> testRoute(@PathVariable String path) {
+        String fullPath = "/" + path;
+        String resolvedUrl = routeService.resolveTargetUrl(fullPath);
+
+        Map<String, Object> result = Map.of(
+                "inputPath", fullPath,
+                "resolvedUrl", resolvedUrl,
+                "matchingRoute", routeService.findMatchingRoute(fullPath)
+                        .map(route -> Map.of(
+                                "pattern", route.getPathPattern(),
+                                "target", route.getTargetUrl(),
+                                "description", route.getDescription()
+                        ))
+                        .orElse(Map.of("message", "No specific route found, using default"))
+        );
+
+        return ResponseEntity.ok(result);
     }
 }

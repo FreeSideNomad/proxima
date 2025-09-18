@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Header Management</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Headers Header -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Current Header Configuration
+            </div>
+            <div style="margin-bottom: 15px;">
+                <span style="color: var(--lcars-orange); font-weight: 700;">Active Preset:</span>
+                <span style="color: var(--lcars-blue); font-size: 1.1rem;" th:text="${activePreset ?: 'None'}">admin_user</span>
+            </div>
+            <p>
+                Headers are currently managed through presets. Below you can see the headers that will be injected into proxied requests.
+            </p>
+        </div>
+
+        <!-- Current Headers Display -->
+        <div class="lcars-panel" th:if="${currentHeaders != null and !currentHeaders.isEmpty()}">
+            <div class="lcars-panel-header">
+                Active Headers
+            </div>
+
+            <table class="lcars-table">
+                <thead>
+                    <tr>
+                        <th>Header Name</th>
+                        <th>Header Value</th>
+                        <th>Type</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="header : ${currentHeaders}">
+                        <td style="color: var(--lcars-orange); font-weight: 700;" th:text="${header.key}">Authorization</td>
+                        <td style="font-family: monospace; max-width: 300px; word-break: break-all;">
+                            <span th:if="${header.key.toLowerCase().contains('authorization')}"
+                                  style="color: var(--lcars-light-gray);">••••••••</span>
+                            <span th:unless="${header.key.toLowerCase().contains('authorization')}"
+                                  th:text="${header.value}">value</span>
+                        </td>
+                        <td>
+                            <span th:if="${header.key.toLowerCase().contains('authorization')}"
+                                  class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem;">AUTH</span>
+                            <span th:if="${header.key.toLowerCase().startsWith('x-')}"
+                                  class="lcars-button info" style="padding: 3px 8px; font-size: 0.7rem;">CUSTOM</span>
+                            <span th:unless="${header.key.toLowerCase().contains('authorization') or header.key.toLowerCase().startsWith('x-')}"
+                                  class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem; background: var(--lcars-gray);">STANDARD</span>
+                        </td>
+                        <td style="color: var(--lcars-blue);">
+                            Active Preset
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Header Statistics -->
+            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Total Headers</div>
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--lcars-orange);"
+                         th:text="${currentHeaders.size()}">3</div>
+                </div>
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Auth Headers</div>
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--lcars-green);"
+                         th:text="${#lists.size(#lists.select(currentHeaders.entrySet(), 'key.toLowerCase().contains(\'authorization\')'))}">1</div>
+                </div>
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Custom Headers</div>
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--lcars-blue);"
+                         th:text="${#lists.size(#lists.select(currentHeaders.entrySet(), 'key.toLowerCase().startsWith(\'x-\')'))}">2</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Headers Message -->
+        <div class="lcars-panel" th:if="${currentHeaders == null or currentHeaders.isEmpty()}">
+            <div style="text-align: center; padding: 40px;">
+                <h3 style="color: var(--lcars-red); margin-bottom: 15px;">NO HEADERS CONFIGURED</h3>
+                <p style="margin-bottom: 20px;">No headers are currently being injected into requests.</p>
+                <div class="lcars-alert warning">
+                    <strong>Configuration Required:</strong> Configure a preset or set up headers in your configuration file.
+                </div>
+            </div>
+        </div>
+
+        <!-- Header Testing -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Header Testing
+            </div>
+            <p style="margin-bottom: 15px;">
+                Test the current header configuration by making a request through the proxy:
+            </p>
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                <a href="/proxy/anything" target="_blank" class="lcars-button success">
+                    TEST HEADERS
+                </a>
+                <a href="/proxy/headers" target="_blank" class="lcars-button info">
+                    VIEW RAW HEADERS
+                </a>
+                <button onclick="copyTestCommand()" class="lcars-button">
+                    COPY CURL
+                </button>
+            </div>
+
+            <!-- Sample curl command -->
+            <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px;">
+                <h5 style="color: var(--lcars-orange); margin-bottom: 10px;">Sample Test Command:</h5>
+                <pre id="curl-command" style="color: var(--lcars-green); font-family: monospace; margin: 0; word-wrap: break-word;">curl -X GET http://localhost:8080/proxy/anything</pre>
+                <p style="margin-top: 10px; font-size: 0.9rem; color: var(--lcars-light-gray);">
+                    This will show you all headers being sent to the downstream service, including the injected ones.
+                </p>
+            </div>
+
+            <script>
+                function copyTestCommand() {
+                    const command = document.getElementById('curl-command').textContent;
+                    navigator.clipboard.writeText(command).then(() => {
+                        // Show temporary success message
+                        const button = event.target;
+                        const originalText = button.textContent;
+                        button.textContent = 'COPIED!';
+                        button.classList.add('success');
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                            button.classList.remove('success');
+                        }, 2000);
+                    });
+                }
+            </script>
+        </div>
+
+        <!-- Header Management Instructions -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Header Management
+            </div>
+            <p style="margin-bottom: 15px;">
+                Headers are managed through presets. To modify headers:
+            </p>
+
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: var(--lcars-orange); margin-bottom: 10px;">Current Options:</h4>
+                <ol style="list-style: none; padding: 0;">
+                    <li style="margin: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">1.</span>
+                        Switch to a different preset using the <a th:href="@{/ui/presets}" style="color: var(--lcars-blue);">Presets</a> page
+                    </li>
+                    <li style="margin: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">2.</span>
+                        Modify preset configurations in your <code>application.yml</code> file
+                    </li>
+                    <li style="margin: 8px 0; padding-left: 25px; position: relative;">
+                        <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">3.</span>
+                        Use environment variables to override header values
+                    </li>
+                </ol>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <a th:href="@{/ui/presets}" class="lcars-button">
+                    MANAGE PRESETS
+                </a>
+                <a href="/api/config/headers" target="_blank" class="lcars-button info">
+                    VIEW JSON API
+                </a>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="lcars-alert warning" style="margin-top: 20px;">
+            <strong>Security Notice:</strong> Authorization header values are masked in this interface for security.
+            Be careful when sharing screenshots or logs that might contain sensitive tokens.
+        </div>
+    </div>
+</body>
+</html>

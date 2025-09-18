@@ -1,0 +1,342 @@
+/* LCARS (Star Trek) Theme CSS */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+:root {
+    --lcars-orange: #FF9900;
+    --lcars-red: #CC6699;
+    --lcars-blue: #9999CC;
+    --lcars-purple: #CC99CC;
+    --lcars-tan: #FFCC99;
+    --lcars-peach: #FFCC99;
+    --lcars-black: #000000;
+    --lcars-gray: #666666;
+    --lcars-light-gray: #999999;
+    --lcars-white: #FFFFFF;
+    --lcars-yellow: #FFFF99;
+    --lcars-green: #99CC99;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Orbitron', monospace;
+    background-color: var(--lcars-black);
+    color: var(--lcars-white);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.lcars-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.lcars-header {
+    background: linear-gradient(90deg, var(--lcars-orange) 0%, var(--lcars-red) 50%, var(--lcars-blue) 100%);
+    height: 80px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: relative;
+}
+
+.lcars-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        rgba(0,0,0,0.1) 10px,
+        rgba(0,0,0,0.1) 12px
+    );
+}
+
+.lcars-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--lcars-black);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    z-index: 1;
+    position: relative;
+}
+
+.lcars-subtitle {
+    font-size: 1rem;
+    color: var(--lcars-black);
+    margin-left: 20px;
+    z-index: 1;
+    position: relative;
+}
+
+/* Main Layout */
+.lcars-main {
+    flex: 1;
+    display: flex;
+    min-height: calc(100vh - 80px);
+}
+
+.lcars-sidebar {
+    width: 250px;
+    background-color: var(--lcars-gray);
+    padding: 20px 0;
+}
+
+.lcars-content {
+    flex: 1;
+    padding: 30px;
+    background-color: var(--lcars-black);
+}
+
+/* Sidebar Navigation */
+.lcars-nav-item {
+    display: block;
+    padding: 15px 25px;
+    color: var(--lcars-black);
+    text-decoration: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 5px 15px;
+    border-radius: 0 20px 20px 0;
+    transition: all 0.3s ease;
+    background-color: var(--lcars-orange);
+}
+
+.lcars-nav-item:hover {
+    background-color: var(--lcars-red);
+    color: var(--lcars-white);
+    transform: translateX(10px);
+}
+
+.lcars-nav-item.active {
+    background-color: var(--lcars-blue);
+    color: var(--lcars-white);
+}
+
+/* Panels */
+.lcars-panel {
+    background-color: var(--lcars-gray);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border: 2px solid var(--lcars-orange);
+}
+
+.lcars-panel-header {
+    background: linear-gradient(90deg, var(--lcars-orange), var(--lcars-red));
+    color: var(--lcars-black);
+    padding: 15px 25px;
+    margin: -25px -25px 20px -25px;
+    border-radius: 18px 18px 0 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 1.1rem;
+}
+
+/* Buttons */
+.lcars-button {
+    background: linear-gradient(135deg, var(--lcars-orange), var(--lcars-red));
+    color: var(--lcars-black);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+}
+
+.lcars-button:hover {
+    background: linear-gradient(135deg, var(--lcars-red), var(--lcars-blue));
+    color: var(--lcars-white);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+}
+
+.lcars-button.danger {
+    background: linear-gradient(135deg, var(--lcars-red), #990000);
+}
+
+.lcars-button.success {
+    background: linear-gradient(135deg, var(--lcars-green), #66AA66);
+}
+
+.lcars-button.info {
+    background: linear-gradient(135deg, var(--lcars-blue), var(--lcars-purple));
+}
+
+/* Forms */
+.lcars-form-group {
+    margin-bottom: 20px;
+}
+
+.lcars-label {
+    display: block;
+    color: var(--lcars-orange);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.lcars-input {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: var(--lcars-black);
+    border: 2px solid var(--lcars-orange);
+    border-radius: 10px;
+    color: var(--lcars-white);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+}
+
+.lcars-input:focus {
+    outline: none;
+    border-color: var(--lcars-blue);
+    box-shadow: 0 0 10px rgba(153, 153, 204, 0.3);
+}
+
+.lcars-select {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: var(--lcars-black);
+    border: 2px solid var(--lcars-orange);
+    border-radius: 10px;
+    color: var(--lcars-white);
+    font-family: 'Orbitron', monospace;
+}
+
+/* Tables */
+.lcars-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.lcars-table th {
+    background: linear-gradient(90deg, var(--lcars-orange), var(--lcars-red));
+    color: var(--lcars-black);
+    padding: 15px;
+    text-align: left;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.lcars-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--lcars-light-gray);
+    color: var(--lcars-white);
+}
+
+.lcars-table tr:hover {
+    background-color: rgba(255, 153, 0, 0.1);
+}
+
+/* Status Indicators */
+.lcars-status {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.lcars-status.active {
+    background-color: var(--lcars-green);
+    box-shadow: 0 0 10px var(--lcars-green);
+}
+
+.lcars-status.inactive {
+    background-color: var(--lcars-red);
+}
+
+/* Cards */
+.lcars-card {
+    background-color: var(--lcars-gray);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 5px solid var(--lcars-orange);
+    transition: all 0.3s ease;
+}
+
+.lcars-card:hover {
+    border-left-color: var(--lcars-blue);
+    transform: translateX(5px);
+}
+
+.lcars-card-title {
+    color: var(--lcars-orange);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+/* Alerts */
+.lcars-alert {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.lcars-alert.success {
+    background-color: var(--lcars-green);
+    color: var(--lcars-black);
+}
+
+.lcars-alert.error {
+    background-color: var(--lcars-red);
+    color: var(--lcars-white);
+}
+
+.lcars-alert.warning {
+    background-color: var(--lcars-yellow);
+    color: var(--lcars-black);
+}
+
+.lcars-alert.info {
+    background-color: var(--lcars-blue);
+    color: var(--lcars-white);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lcars-main {
+        flex-direction: column;
+    }
+
+    .lcars-sidebar {
+        width: 100%;
+        order: 2;
+    }
+
+    .lcars-title {
+        font-size: 1.8rem;
+    }
+
+    .lcars-nav-item {
+        margin: 5px;
+        border-radius: 20px;
+    }
+}

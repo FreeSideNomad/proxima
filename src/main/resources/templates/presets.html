@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Header Presets</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Presets Header -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Header Presets Management
+            </div>
+            <p style="margin-bottom: 20px;">
+                Manage and switch between different header configurations for your reverse proxy.
+                Click "ACTIVATE" to switch the active preset.
+            </p>
+        </div>
+
+        <!-- Presets List -->
+        <div th:if="${presets != null and !presets.isEmpty()}">
+            <div th:each="preset : ${presets}" class="lcars-panel">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="color: var(--lcars-orange); margin: 0; display: flex; align-items: center;">
+                            <span th:if="${preset.name == activePreset}" class="lcars-status active" style="margin-right: 10px;"></span>
+                            <span th:unless="${preset.name == activePreset}" class="lcars-status inactive" style="margin-right: 10px;"></span>
+                            <span th:text="${preset.displayName}">Admin User</span>
+                        </h3>
+                        <p style="margin: 5px 0; color: var(--lcars-light-gray); font-size: 0.9rem;">
+                            Preset: <code th:text="${preset.name}">admin_user</code>
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button th:if="${preset.name != activePreset}"
+                                class="lcars-button activate-preset"
+                                th:data-preset="${preset.name}">
+                            ACTIVATE
+                        </button>
+                        <button th:if="${preset.name == activePreset}"
+                                class="lcars-button success"
+                                disabled>
+                            ACTIVE
+                        </button>
+                        <a th:href="@{/ui/presets/{name}(name=${preset.name})}" class="lcars-button info">
+                            DETAILS
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Headers Preview -->
+                <div th:if="${preset.headers != null and !preset.headers.isEmpty()}">
+                    <h4 style="color: var(--lcars-blue); margin: 15px 0 10px 0;">Headers:</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+                        <div th:each="header : ${preset.headers}"
+                             style="background-color: var(--lcars-black); padding: 10px; border-radius: 5px; border-left: 3px solid var(--lcars-orange);">
+                            <div style="color: var(--lcars-orange); font-weight: 700; font-size: 0.9rem;" th:text="${header.key}">Authorization</div>
+                            <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem; word-break: break-all;"
+                                 th:text="${header.value}">Bearer token...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Presets Message -->
+        <div th:if="${presets == null or presets.isEmpty()}" class="lcars-panel">
+            <div style="text-align: center; padding: 40px;">
+                <h3 style="color: var(--lcars-red); margin-bottom: 15px;">NO PRESETS CONFIGURED</h3>
+                <p style="margin-bottom: 20px;">No header presets are currently configured in the system.</p>
+                <div class="lcars-alert warning">
+                    <strong>Configuration Required:</strong> Add preset configurations to your application.yml file or environment variables.
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Configuration Instructions
+            </div>
+            <p style="margin-bottom: 15px;">
+                To add new presets, update your <code>application.yml</code> configuration file:
+            </p>
+            <pre style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; color: var(--lcars-green); font-family: monospace; overflow-x: auto;">proxima:
+  presets:
+    - name: custom_preset
+      display-name: "Custom Preset"
+      headers:
+        Authorization: "Bearer your-token"
+        X-Custom-Header: "your-value"</pre>
+            <div style="margin-top: 15px;">
+                <a th:href="@{/ui/status}" class="lcars-button">
+                    Validate Configuration
+                </a>
+                <a href="/api/config/presets" target="_blank" class="lcars-button info">
+                    View JSON API
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

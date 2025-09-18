@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title + ' - Proxima' : 'Proxima - JWT Reverse Proxy'}">Proxima</title>
+    <link rel="stylesheet" th:href="@{/css/lcars.css}">
+</head>
+<body>
+    <div class="lcars-container">
+        <!-- Header -->
+        <header class="lcars-header">
+            <h1 class="lcars-title">PROXIMA</h1>
+            <span class="lcars-subtitle">JWT REVERSE PROXY SYSTEM</span>
+            <div style="margin-left: auto; display: flex; align-items: center;">
+                <span style="color: var(--lcars-black); margin-right: 10px;">SYSTEM STATUS:</span>
+                <div id="system-status" class="lcars-status active" title="System Status: Online"></div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="lcars-main">
+            <!-- Sidebar Navigation -->
+            <nav class="lcars-sidebar">
+                <a th:href="@{/ui}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest.requestURI == '/ui' or #httpServletRequest.requestURI == '/ui/' ? 'active' : ''}">
+                    Dashboard
+                </a>
+                <a th:href="@{/ui/presets}" class="lcars-nav-item"
+                   th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/ui/presets') ? 'active' : ''}">
+                    Presets
+                </a>
+                <a th:href="@{/ui/headers}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest.requestURI == '/ui/headers' ? 'active' : ''}">
+                    Headers
+                </a>
+                <a th:href="@{/ui/routes}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest.requestURI == '/ui/routes' ? 'active' : ''}">
+                    Routes
+                </a>
+                <a th:href="@{/ui/status}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest.requestURI == '/ui/status' ? 'active' : ''}">
+                    Status
+                </a>
+                <a th:href="@{/actuator/health}" class="lcars-nav-item" target="_blank">
+                    Health Check
+                </a>
+            </nav>
+
+            <!-- Content Area -->
+            <div class="lcars-content">
+                <!-- Alert Container -->
+                <div id="alert-container"></div>
+
+                <!-- Page Content -->
+                <div th:fragment="content">
+                    <!-- Content will be inserted here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script th:src="@{/js/lcars.js}"></script>
+</body>
+</html>

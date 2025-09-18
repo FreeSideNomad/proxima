@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>System Status</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Status Header -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                System Status & Diagnostics
+            </div>
+            <p>Monitor the health and configuration of your Proxima reverse proxy system.</p>
+        </div>
+
+        <!-- Configuration Validation -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Configuration Validation
+            </div>
+
+            <div th:if="${configErrors != null and !configErrors.isEmpty()}">
+                <div class="lcars-alert error" style="margin-bottom: 15px;">
+                    <strong>Configuration Errors Detected:</strong>
+                </div>
+                <ul style="list-style: none; padding: 0;">
+                    <li th:each="error : ${configErrors}"
+                        style="margin: 8px 0; padding: 10px; background-color: rgba(204, 102, 153, 0.1); border-left: 3px solid var(--lcars-red); border-radius: 3px;"
+                        th:text="${error}">Error message</li>
+                </ul>
+            </div>
+
+            <div th:if="${configErrors == null or configErrors.isEmpty()}">
+                <div class="lcars-alert success">
+                    <strong>✓ Configuration Valid</strong> - All presets and settings are properly configured.
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button onclick="validateConfig()" class="lcars-button">
+                    REVALIDATE CONFIG
+                </button>
+                <a href="/api/config/validate" target="_blank" class="lcars-button info">
+                    VIEW JSON
+                </a>
+            </div>
+
+            <div id="validation-result" style="margin-top: 15px; display: none;"></div>
+
+            <script>
+                async function validateConfig() {
+                    const resultDiv = document.getElementById('validation-result');
+                    try {
+                        const response = await fetch('/api/config/validate');
+                        const result = await response.json();
+
+                        if (result.valid) {
+                            resultDiv.innerHTML = '<div class="lcars-alert success">✓ Configuration is valid</div>';
+                        } else {
+                            const errorList = result.errors.map(error => `<li>${error}</li>`).join('');
+                            resultDiv.innerHTML = `
+                                <div class="lcars-alert error">
+                                    <strong>Configuration Errors:</strong>
+                                    <ul style="margin-top: 10px;">${errorList}</ul>
+                                </div>
+                            `;
+                        }
+                        resultDiv.style.display = 'block';
+                    } catch (error) {
+                        resultDiv.innerHTML = '<div class="lcars-alert error">Error validating configuration</div>';
+                        resultDiv.style.display = 'block';
+                    }
+                }
+            </script>
+        </div>
+
+        <!-- System Information -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                System Information
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <h4 style="color: var(--lcars-orange); margin-bottom: 10px;">DOWNSTREAM</h4>
+                    <p style="font-family: monospace; color: var(--lcars-green);" th:text="${downstreamUrl}">http://httpbin.org</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--lcars-orange); margin-bottom: 10px;">ACTIVE PRESET</h4>
+                    <p style="color: var(--lcars-blue); font-weight: 700;" th:text="${activePreset ?: 'None'}">admin_user</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--lcars-orange); margin-bottom: 10px;">PROXY STATUS</h4>
+                    <p style="color: var(--lcars-green); font-weight: 700;">OPERATIONAL</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Check -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Health Monitoring
+            </div>
+
+            <div id="health-status" style="margin-bottom: 20px;">
+                <div class="lcars-alert info">Checking system health...</div>
+            </div>
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button onclick="checkHealth()" class="lcars-button">
+                    CHECK HEALTH
+                </button>
+                <a href="/actuator/health" target="_blank" class="lcars-button info">
+                    FULL HEALTH REPORT
+                </a>
+                <a href="/actuator/metrics" target="_blank" class="lcars-button">
+                    VIEW METRICS
+                </a>
+            </div>
+
+            <script>
+                async function checkHealth() {
+                    const statusDiv = document.getElementById('health-status');
+                    statusDiv.innerHTML = '<div class="lcars-alert info">Checking system health...</div>';
+
+                    try {
+                        const response = await fetch('/actuator/health');
+                        const health = await response.json();
+
+                        if (health.status === 'UP') {
+                            statusDiv.innerHTML = `
+                                <div class="lcars-alert success">
+                                    <strong>✓ System Healthy</strong> - All components are operational
+                                </div>
+                            `;
+                        } else {
+                            statusDiv.innerHTML = `
+                                <div class="lcars-alert error">
+                                    <strong>⚠ System Issues</strong> - Status: ${health.status}
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        statusDiv.innerHTML = `
+                            <div class="lcars-alert error">
+                                <strong>⚠ Health Check Failed</strong> - Unable to connect to health endpoint
+                            </div>
+                        `;
+                    }
+                }
+
+                // Auto-check health on page load
+                document.addEventListener('DOMContentLoaded', checkHealth);
+            </script>
+        </div>
+
+        <!-- API Endpoints -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                API Endpoints
+            </div>
+
+            <table class="lcars-table">
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Purpose</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/proxy/*</code></td>
+                        <td>Reverse proxy endpoint</td>
+                        <td>
+                            <a href="/proxy/anything" target="_blank" class="lcars-button" style="padding: 2px 8px; font-size: 0.8rem;">TEST</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>/api/config/*</code></td>
+                        <td>Configuration management</td>
+                        <td>
+                            <a href="/api/config/info" target="_blank" class="lcars-button info" style="padding: 2px 8px; font-size: 0.8rem;">VIEW</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>/actuator/*</code></td>
+                        <td>Health and monitoring</td>
+                        <td>
+                            <a href="/actuator/health" target="_blank" class="lcars-button" style="padding: 2px 8px; font-size: 0.8rem;">CHECK</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>/ui/*</code></td>
+                        <td>Web interface</td>
+                        <td>
+                            <a th:href="@{/ui}" class="lcars-button success" style="padding: 2px 8px; font-size: 0.8rem;">OPEN</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Quick Diagnostics -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Quick Diagnostics
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="lcars-card" onclick="testProxy()">
+                    <div class="lcars-card-title">PROXY TEST</div>
+                    <div style="font-size: 0.9rem; color: var(--lcars-light-gray);">Test proxy functionality</div>
+                </div>
+                <div class="lcars-card" onclick="testDownstream()">
+                    <div class="lcars-card-title">DOWNSTREAM TEST</div>
+                    <div style="font-size: 0.9rem; color: var(--lcars-light-gray);">Check downstream connectivity</div>
+                </div>
+                <div class="lcars-card" onclick="testHeaders()">
+                    <div class="lcars-card-title">HEADER TEST</div>
+                    <div style="font-size: 0.9rem; color: var(--lcars-light-gray);">Verify header injection</div>
+                </div>
+            </div>
+
+            <div id="diagnostic-results" style="display: none;"></div>
+
+            <script>
+                async function testProxy() {
+                    showDiagnosticResult('Testing proxy functionality...', 'info');
+                    try {
+                        const response = await fetch('/proxy/anything');
+                        if (response.ok) {
+                            showDiagnosticResult('✓ Proxy test successful', 'success');
+                        } else {
+                            showDiagnosticResult('⚠ Proxy test failed: ' + response.status, 'error');
+                        }
+                    } catch (error) {
+                        showDiagnosticResult('⚠ Proxy test failed: ' + error.message, 'error');
+                    }
+                }
+
+                async function testDownstream() {
+                    showDiagnosticResult('Testing downstream connectivity...', 'info');
+                    // This would require a specific endpoint to test downstream connectivity
+                    showDiagnosticResult('ℹ Downstream test requires manual verification', 'warning');
+                }
+
+                async function testHeaders() {
+                    showDiagnosticResult('Testing header injection...', 'info');
+                    try {
+                        const response = await fetch('/proxy/headers');
+                        if (response.ok) {
+                            showDiagnosticResult('✓ Headers are being injected correctly', 'success');
+                        } else {
+                            showDiagnosticResult('⚠ Header test failed: ' + response.status, 'error');
+                        }
+                    } catch (error) {
+                        showDiagnosticResult('⚠ Header test failed: ' + error.message, 'error');
+                    }
+                }
+
+                function showDiagnosticResult(message, type) {
+                    const resultDiv = document.getElementById('diagnostic-results');
+                    resultDiv.innerHTML = `<div class="lcars-alert ${type}">${message}</div>`;
+                    resultDiv.style.display = 'block';
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

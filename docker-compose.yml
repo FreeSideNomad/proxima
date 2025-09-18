@@ -15,6 +15,9 @@ services:
       - PROXIMA_ADMIN_AUTH=Bearer docker-admin-jwt-token
       - PROXIMA_USER_AUTH=Bearer docker-user-jwt-token
       - PROXIMA_API_AUTH=Bearer docker-api-jwt-token
+      - PROXIMA_USERS_SERVICE_URL=http://httpbin:80
+      - PROXIMA_INVOICES_SERVICE_URL=http://httpbin:80
+      - PROXIMA_AUTH_SERVICE_URL=http://httpbin:80
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s

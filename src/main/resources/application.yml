@@ -33,6 +33,19 @@ proxima:
         Authorization: "Bearer api-client-token"
         X-Client-Type: "api"
         X-Rate-Limit: "1000"
+  routes:
+    - path-pattern: "/api/users/**"
+      target-url: "http://localhost:8081"
+      description: "User management service"
+      enabled: true
+    - path-pattern: "/api/invoices/**"
+      target-url: "http://localhost:8082"
+      description: "Invoice processing service"
+      enabled: true
+    - path-pattern: "/api/auth/**"
+      target-url: "http://localhost:8083"
+      description: "Authentication service"
+      enabled: true
 
 logging:
   level:

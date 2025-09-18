@@ -23,6 +23,9 @@ public class ProxyService {
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private RouteService routeService;
+
     private final WebClient webClient;
 
     public ProxyService() {
@@ -36,7 +39,7 @@ public class ProxyService {
     public CompletableFuture<ResponseEntity<String>> forwardRequest(
             String method, String path, HttpServletRequest originalRequest, String body) {
 
-        String targetUrl = configurationService.getDownstreamUrl() + path;
+        String targetUrl = routeService.resolveTargetUrl(path);
         logger.debug("Forwarding {} request to: {}", method, targetUrl);
 
         HttpHeaders headers = buildHeaders(originalRequest);

@@ -1,6 +1,7 @@
 package com.freesidenomad.proxima.config;
 
 import com.freesidenomad.proxima.model.HeaderPreset;
+import com.freesidenomad.proxima.model.RouteRule;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ public class ProximaProperties {
     private Map<String, String> headers;
     private List<HeaderPreset> presets;
     private String activePreset;
+    private List<RouteRule> routes;
 
     public Downstream getDownstream() {
         return downstream;
@@ -46,6 +48,14 @@ public class ProximaProperties {
 
     public void setActivePreset(String activePreset) {
         this.activePreset = activePreset;
+    }
+
+    public List<RouteRule> getRoutes() {
+        return routes;
+    }
+
+    public void setRoutes(List<RouteRule> routes) {
+        this.routes = routes;
     }
 
     public static class Downstream {

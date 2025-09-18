@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Route Configuration</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Routes Header -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Route Configuration Management
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Total Routes</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--lcars-orange);"
+                         th:text="${routeCount}">0</div>
+                </div>
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Enabled Routes</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--lcars-green);"
+                         th:text="${enabledRouteCount}">0</div>
+                </div>
+            </div>
+            <p>
+                Configure path-based routing to different downstream services. Routes are matched in order of configuration.
+            </p>
+        </div>
+
+        <!-- Routes List -->
+        <div th:if="${hasRoutes}">
+            <div th:each="route : ${routes}" class="lcars-panel">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="color: var(--lcars-orange); margin: 0; display: flex; align-items: center;">
+                            <span th:if="${route.enabled}" class="lcars-status active" style="margin-right: 10px;"></span>
+                            <span th:unless="${route.enabled}" class="lcars-status inactive" style="margin-right: 10px;"></span>
+                            <code th:text="${route.pathPattern}">/api/users/**</code>
+                        </h3>
+                        <p style="margin: 5px 0; color: var(--lcars-light-gray);" th:text="${route.description}">User service routes</p>
+                    </div>
+                    <div>
+                        <span th:if="${route.enabled}" class="lcars-button success" style="padding: 5px 10px; font-size: 0.8rem;">
+                            ENABLED
+                        </span>
+                        <span th:unless="${route.enabled}" class="lcars-button danger" style="padding: 5px 10px; font-size: 0.8rem;">
+                            DISABLED
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Route Details -->
+                <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                        <div>
+                            <h4 style="color: var(--lcars-blue); margin-bottom: 10px;">Pattern</h4>
+                            <code style="color: var(--lcars-orange); font-size: 1.1rem;" th:text="${route.pathPattern}">/api/users/**</code>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--lcars-blue); margin-bottom: 10px;">Target URL</h4>
+                            <code style="color: var(--lcars-green); font-size: 1.1rem;" th:text="${route.targetUrl}">http://localhost:8081</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Usage -->
+                <div style="background-color: var(--lcars-gray); padding: 10px; border-radius: 5px;">
+                    <h5 style="color: var(--lcars-orange); margin-bottom: 8px;">Example Usage:</h5>
+                    <div style="font-family: monospace; font-size: 0.9rem;">
+                        <div style="margin: 3px 0;">
+                            <span style="color: var(--lcars-light-gray);">Request:</span>
+                            <span style="color: var(--lcars-white);">GET /proxy</span><span style="color: var(--lcars-orange);" th:text="${route.pathPattern}">/api/users/**</span>
+                        </div>
+                        <div style="margin: 3px 0;">
+                            <span style="color: var(--lcars-light-gray);">Forwards to:</span>
+                            <span style="color: var(--lcars-green);" th:text="${route.targetUrl}">http://localhost:8081</span><span style="color: var(--lcars-orange);" th:text="${route.pathPattern.replace('/**', '/...')}">/api/users/...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Routes Message -->
+        <div th:unless="${hasRoutes}" class="lcars-panel">
+            <div style="text-align: center; padding: 40px;">
+                <h3 style="color: var(--lcars-red); margin-bottom: 15px;">NO ROUTES CONFIGURED</h3>
+                <p style="margin-bottom: 20px;">No custom routes are configured. All requests will use the default downstream URL.</p>
+                <div class="lcars-alert info">
+                    <strong>Default Behavior:</strong> All requests are forwarded to the configured downstream URL without path-based routing.
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Testing -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Route Testing
+            </div>
+            <p style="margin-bottom: 15px;">Test how different paths will be routed:</p>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center;">
+                <input type="text" id="test-path" class="lcars-input" placeholder="Enter path (e.g., api/users/123)"
+                       style="flex: 1;" value="api/users/123">
+                <button onclick="testRoute()" class="lcars-button">TEST ROUTE</button>
+            </div>
+
+            <div id="route-test-result" style="display: none;"></div>
+
+            <script>
+                async function testRoute() {
+                    const path = document.getElementById('test-path').value;
+                    const resultDiv = document.getElementById('route-test-result');
+
+                    if (!path) {
+                        resultDiv.innerHTML = '<div class="lcars-alert error">Please enter a path to test</div>';
+                        resultDiv.style.display = 'block';
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/api/config/routes/test/${encodeURIComponent(path)}`);
+                        const result = await response.json();
+
+                        resultDiv.innerHTML = `
+                            <div class="lcars-alert success">
+                                <h4 style="margin-bottom: 10px;">Route Test Result:</h4>
+                                <p><strong>Input Path:</strong> <code>${result.inputPath}</code></p>
+                                <p><strong>Resolved URL:</strong> <code>${result.resolvedUrl}</code></p>
+                                <p><strong>Matching Rule:</strong> ${result.matchingRoute.pattern || result.matchingRoute.message}</p>
+                            </div>
+                        `;
+                        resultDiv.style.display = 'block';
+                    } catch (error) {
+                        resultDiv.innerHTML = '<div class="lcars-alert error">Error testing route</div>';
+                        resultDiv.style.display = 'block';
+                    }
+                }
+            </script>
+        </div>
+
+        <!-- Configuration Instructions -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Configuration Instructions
+            </div>
+            <p style="margin-bottom: 15px;">
+                To configure routes, update your <code>application.yml</code> file:
+            </p>
+            <pre style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; color: var(--lcars-green); font-family: monospace; overflow-x: auto;">proxima:
+  routes:
+    - path-pattern: "/api/users/**"
+      target-url: "http://localhost:8081"
+      description: "User service"
+      enabled: true
+    - path-pattern: "/api/invoices/**"
+      target-url: "http://localhost:8082"
+      description: "Invoice service"
+      enabled: true</pre>
+
+            <div style="margin-top: 20px;">
+                <h4 style="color: var(--lcars-orange); margin-bottom: 10px;">Pattern Matching Rules:</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin: 8px 0; padding-left: 20px; position: relative;">
+                        <span style="position: absolute; left: 0; color: var(--lcars-orange);">•</span>
+                        <code>/api/users/**</code> - Matches all paths starting with <code>/api/users/</code>
+                    </li>
+                    <li style="margin: 8px 0; padding-left: 20px; position: relative;">
+                        <span style="position: absolute; left: 0; color: var(--lcars-orange);">•</span>
+                        <code>/api/users</code> - Exact match only
+                    </li>
+                    <li style="margin: 8px 0; padding-left: 20px; position: relative;">
+                        <span style="position: absolute; left: 0; color: var(--lcars-orange);">•</span>
+                        Routes are matched in configuration order
+                    </li>
+                </ul>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <a href="/api/config/routes" target="_blank" class="lcars-button info">
+                    View JSON API
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

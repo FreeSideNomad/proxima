@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class JwtService {
+public final class JwtService {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
 

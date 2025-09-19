@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -256,12 +257,13 @@ public class JwtController {
 
     // Request DTOs
     @Schema(description = "JWT token generation request")
+    @Data
     public static class TokenRequest {
         @Schema(description = "JWT subject (sub claim)", example = "user@example.com", required = true)
         private String subject;
 
         @Schema(description = "Custom claims to include in the token", example = "{\"role\": \"admin\", \"department\": \"IT\"}")
-        private Map<String, Object> claims;
+        private Map<String, Object> claims = new HashMap<>();
 
         @Schema(description = "Token expiration time in seconds", example = "3600", defaultValue = "3600")
         private Long expirationSeconds;
@@ -272,21 +274,13 @@ public class JwtController {
         @Schema(description = "Key ID for signing", example = "default", defaultValue = "default")
         private String keyId;
 
-        // Getters and setters
-        public String getSubject() { return subject; }
-        public void setSubject(String subject) { this.subject = subject; }
+        public Map<String, Object> getClaims() {
+            return new HashMap<>(claims);
+        }
 
-        public Map<String, Object> getClaims() { return claims; }
-        public void setClaims(Map<String, Object> claims) { this.claims = claims; }
-
-        public Long getExpirationSeconds() { return expirationSeconds; }
-        public void setExpirationSeconds(Long expirationSeconds) { this.expirationSeconds = expirationSeconds; }
-
-        public String getAlgorithm() { return algorithm; }
-        public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
-
-        public String getKeyId() { return keyId; }
-        public void setKeyId(String keyId) { this.keyId = keyId; }
+        public void setClaims(Map<String, Object> claims) {
+            this.claims = claims != null ? new HashMap<>(claims) : new HashMap<>();
+        }
     }
 
     @Schema(description = "Cryptographic key generation request")

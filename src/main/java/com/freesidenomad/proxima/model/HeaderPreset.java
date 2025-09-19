@@ -1,51 +1,31 @@
 package com.freesidenomad.proxima.model;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.HashMap;
 import java.util.Map;
 
+@Data
+@NoArgsConstructor
 public class HeaderPreset {
     private String name;
     private String displayName;
-    private Map<String, String> headers;
+    private Map<String, String> headers = new HashMap<>();
     private boolean active;
-
-    public HeaderPreset() {}
 
     public HeaderPreset(String name, String displayName, Map<String, String> headers) {
         this.name = name;
         this.displayName = displayName;
-        this.headers = headers;
+        this.headers = headers != null ? new HashMap<>(headers) : new HashMap<>();
         this.active = false;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
     public Map<String, String> getHeaders() {
-        return headers;
+        return new HashMap<>(headers);
     }
 
     public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
+        this.headers = headers != null ? new HashMap<>(headers) : new HashMap<>();
     }
 }

@@ -90,8 +90,9 @@ body {
 
 .lcars-sidebar {
     width: 250px;
-    background-color: var(--lcars-gray);
+    background-color: var(--lcars-black);
     padding: 20px 0;
+    border-right: 2px solid var(--lcars-orange);
 }
 
 .lcars-content {
@@ -128,7 +129,7 @@ body {
 
 /* Panels */
 .lcars-panel {
-    background-color: var(--lcars-gray);
+    background-color: var(--lcars-black);
     border-radius: 20px;
     padding: 25px;
     margin-bottom: 20px;
@@ -272,7 +273,7 @@ body {
 
 /* Cards */
 .lcars-card {
-    background-color: var(--lcars-gray);
+    background-color: var(--lcars-black);
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 15px;

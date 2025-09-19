@@ -2,18 +2,38 @@
 
 class ProximaUI {
     constructor() {
+        this.audioContext = null;
+        this.soundEnabled = true;
         this.init();
     }
 
     init() {
+        this.initAudio();
         this.setupEventListeners();
         this.loadCurrentConfig();
         this.startStatusUpdates();
     }
 
+    initAudio() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (error) {
+            console.log('Web Audio API not supported');
+            this.soundEnabled = false;
+        }
+    }
+
     setupEventListeners() {
-        // Preset activation buttons
+        // Add LCARS sounds to all buttons and clickable elements
         document.addEventListener('click', (e) => {
+            // Play sound for LCARS buttons and nav items
+            if (e.target.classList.contains('lcars-button') ||
+                e.target.classList.contains('lcars-nav-item') ||
+                e.target.classList.contains('activate-preset')) {
+                this.playLCARSSound();
+            }
+
+            // Preset activation buttons
             if (e.target.classList.contains('activate-preset')) {
                 e.preventDefault();
                 this.activatePreset(e.target.dataset.preset);
@@ -25,6 +45,7 @@ class ProximaUI {
         headerForms.forEach(form => {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
+                this.playLCARSSound();
                 this.saveHeaders(form);
             });
         });
@@ -37,6 +58,13 @@ class ProximaUI {
                 item.classList.add('active');
             });
         });
+
+        // Resume audio context on first user interaction (required by browsers)
+        document.addEventListener('click', () => {
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+        }, { once: true });
     }
 
     async loadCurrentConfig() {
@@ -58,13 +86,17 @@ class ProximaUI {
             const result = await response.json();
 
             if (result.status === 'success') {
+                this.playLCARSSound('confirm');
                 this.showAlert(`Preset "${presetName}" activated successfully`, 'success');
                 this.loadCurrentConfig();
                 this.updatePresetButtons(presetName);
+                this.updatePresetStatusIndicators(presetName);
             } else {
+                this.playLCARSSound('error');
                 this.showAlert(result.message, 'error');
             }
         } catch (error) {
+            this.playLCARSSound('error');
             this.showAlert('Error activating preset', 'error');
         }
     }
@@ -79,6 +111,41 @@ class ProximaUI {
             } else {
                 button.textContent = 'ACTIVATE';
                 button.classList.remove('success');
+                button.disabled = false;
+            }
+        });
+    }
+
+    updatePresetStatusIndicators(activePreset) {
+        // Update all status indicators
+        const statusIndicators = document.querySelectorAll('.lcars-status');
+        statusIndicators.forEach(indicator => {
+            const presetElement = indicator.closest('[data-preset-name]');
+            if (presetElement) {
+                const presetName = presetElement.dataset.presetName;
+                if (presetName === activePreset) {
+                    indicator.classList.remove('inactive');
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                    indicator.classList.add('inactive');
+                }
+            }
+        });
+
+        // Also update buttons that might have changed state
+        const allButtons = document.querySelectorAll('button[th\\:data-preset], button[data-preset]');
+        allButtons.forEach(button => {
+            const presetName = button.dataset.preset || button.getAttribute('th:data-preset');
+            if (presetName === activePreset) {
+                button.textContent = 'ACTIVE';
+                button.classList.add('success');
+                button.classList.remove('activate-preset');
+                button.disabled = true;
+            } else {
+                button.textContent = 'ACTIVATE';
+                button.classList.remove('success');
+                button.classList.add('activate-preset');
                 button.disabled = false;
             }
         });
@@ -171,10 +238,51 @@ class ProximaUI {
         }
     }
 
-    // Utility method for making LCARS sound effects (optional)
-    playLCARSSound() {
-        // Could implement Web Audio API sounds here
-        console.log('*LCARS beep*');
+    // LCARS sound effects implementation
+    playLCARSSound(type = 'beep') {
+        if (!this.soundEnabled || !this.audioContext) return;
+
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            // Different LCARS sound types
+            switch (type) {
+                case 'beep':
+                    // Classic LCARS beep: 800Hz for 120ms
+                    oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.12);
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.12);
+                    break;
+
+                case 'confirm':
+                    // Confirmation sound: rising tone
+                    oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(1000, this.audioContext.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.1);
+                    break;
+
+                case 'error':
+                    // Error sound: low declining tone
+                    oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, this.audioContext.currentTime + 0.15);
+                    gainNode.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.15);
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.15);
+                    break;
+            }
+        } catch (error) {
+            console.log('LCARS sound playback error:', error);
+        }
     }
 }
 

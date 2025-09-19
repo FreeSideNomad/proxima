@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/config")
+@RequestMapping("/proxima/api/config")
 public class ConfigurationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);

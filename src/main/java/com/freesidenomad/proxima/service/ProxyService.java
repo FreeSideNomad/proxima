@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -39,37 +40,81 @@ public class ProxyService {
     public CompletableFuture<ResponseEntity<String>> forwardRequest(
             String method, String path, HttpServletRequest originalRequest, String body) {
 
+        long startTime = System.currentTimeMillis();
+        String clientIp = getClientIpAddress(originalRequest);
+
         String targetUrl = routeService.resolveTargetUrl(path);
-        logger.debug("Forwarding {} request to: {}", method, targetUrl);
+        if (targetUrl == null) {
+            logger.info("BLOCKED: {} {} from {} - Reserved route", method, path, clientIp);
+            return CompletableFuture.completedFuture(
+                ResponseEntity.status(404).body("{\"error\":\"Route not found\"}")
+            );
+        }
 
         HttpHeaders headers = buildHeaders(originalRequest);
+
+        logger.info("PROXY: {} {} from {} -> {} (headers: {})",
+                   method, path, clientIp, targetUrl,
+                   configurationService.getActivePresetName());
+
+        if (body != null && !body.isEmpty()) {
+            logger.debug("Request body length: {} bytes", body.length());
+        }
 
         return webClient
                 .method(org.springframework.http.HttpMethod.valueOf(method.toUpperCase()))
                 .uri(targetUrl)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .body(body != null ? BodyInserters.fromValue(body) : BodyInserters.empty())
-                .retrieve()
-                .toEntity(String.class)
+                .exchangeToMono(response -> {
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.info("PROXY SUCCESS: {} {} from {} -> {} completed in {}ms (status: {})",
+                               method, path, clientIp, targetUrl, duration, response.statusCode());
+
+                    // Return response as-is to pass through HTTP errors transparently
+                    return response.toEntity(String.class);
+                })
                 .timeout(Duration.ofSeconds(30))
-                .toFuture();
+                .toFuture()
+                .exceptionally(throwable -> {
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.error("PROXY ERROR: {} {} from {} -> {} failed after {}ms: {}",
+                               method, path, clientIp, targetUrl, duration, throwable.getMessage());
+                    return ResponseEntity.status(500).body("Proxy error: " + throwable.getMessage());
+                });
     }
 
     private HttpHeaders buildHeaders(HttpServletRequest originalRequest) {
         HttpHeaders headers = new HttpHeaders();
+        Map<String, String> headerMappings = configurationService.getActiveHeaderMappings();
+        Map<String, String> currentHeaders = configurationService.getCurrentHeaders();
 
         Collections.list(originalRequest.getHeaderNames()).forEach(headerName -> {
             String headerValue = originalRequest.getHeader(headerName);
             if (!isHopByHopHeader(headerName)) {
-                headers.add(headerName, headerValue);
+                // Check if this header should be remapped
+                String mappedHeaderName = headerMappings.getOrDefault(headerName, headerName);
+
+                // Only add the mapped header if it's not going to be overridden by preset headers
+                if (currentHeaders == null || !currentHeaders.containsKey(mappedHeaderName)) {
+                    headers.add(mappedHeaderName, headerValue);
+
+                    if (!headerName.equals(mappedHeaderName)) {
+                        logger.debug("Header remapped: {} -> {}", headerName, mappedHeaderName);
+                    }
+                } else if (!headerName.equals(mappedHeaderName)) {
+                    // Still add the mapped header even if preset will override the original name
+                    headers.add(mappedHeaderName, headerValue);
+                    logger.debug("Header remapped: {} -> {}", headerName, mappedHeaderName);
+                }
             }
         });
 
-        Map<String, String> currentHeaders = configurationService.getCurrentHeaders();
+        // Add preset headers (these override any incoming headers with same name)
         if (currentHeaders != null) {
             currentHeaders.forEach((key, value) -> {
                 logger.debug("Adding custom header: {} = {}", key, value);
-                headers.set(key, value);
+                headers.set(key, value); // Use set to override any existing headers
             });
         }
 
@@ -86,5 +131,19 @@ public class ProxyService {
                headerName.equalsIgnoreCase("transfer-encoding") ||
                headerName.equalsIgnoreCase("upgrade") ||
                headerName.equalsIgnoreCase("host");
+    }
+
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty()) {
+            return xRealIp;
+        }
+
+        return request.getRemoteAddr();
     }
 }

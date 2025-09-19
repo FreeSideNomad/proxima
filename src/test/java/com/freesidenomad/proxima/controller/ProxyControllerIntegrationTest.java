@@ -1,80 +1,86 @@
 package com.freesidenomad.proxima.controller;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 
 @SpringBootTest
-@AutoConfigureWebMvc
-@TestPropertySource(properties = {
-    "proxima.downstream.url=http://localhost:9999",
-    "proxima.headers.authorization=Bearer test-jwt-token",
-    "proxima.headers.x-user-role=test-user"
-})
+@AutoConfigureMockMvc
 class ProxyControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    private WireMockServer wireMockServer;
+    private MockWebServer mockWebServer;
 
     @BeforeEach
-    void setUp() {
-        wireMockServer = new WireMockServer(options().port(9999));
-        wireMockServer.start();
+    void setUp() throws Exception {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start(9999);
     }
 
     @AfterEach
-    void tearDown() {
-        wireMockServer.stop();
+    void tearDown() throws Exception {
+        mockWebServer.shutdown();
     }
 
     @Test
     void testProxyGetRequest() throws Exception {
-        wireMockServer.stubFor(get(urlEqualTo("/api/test"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"status\":\"success\"}")));
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("{\"status\":\"success\"}"));
 
-        mockMvc.perform(get("/proxy/api/test"))
+        var mvcResult = mockMvc.perform(get("/test/endpoint"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"status\":\"success\"}"));
 
-        wireMockServer.verify(getRequestedFor(urlEqualTo("/api/test"))
-                .withHeader("Authorization", equalTo("Bearer test-jwt-token"))
-                .withHeader("X-User-Role", equalTo("test-user")));
+        RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+        assertEquals("/test/endpoint", recordedRequest.getPath());
+        assertEquals("Bearer test-jwt-token", recordedRequest.getHeader("Authorization"));
+        assertEquals("test-user", recordedRequest.getHeader("X-User-Role"));
     }
 
     @Test
     void testProxyPostRequest() throws Exception {
-        wireMockServer.stubFor(post(urlEqualTo("/api/create"))
-                .willReturn(aResponse()
-                        .withStatus(201)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"id\":123}")));
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(201)
+                .setHeader("Content-Type", "application/json")
+                .setBody("{\"id\":123}"));
 
-        mockMvc.perform(post("/proxy/api/create")
+        var mvcResult = mockMvc.perform(post("/test/create")
                 .contentType("application/json")
                 .content("{\"name\":\"test\"}"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isCreated())
                 .andExpect(content().json("{\"id\":123}"));
 
-        wireMockServer.verify(postRequestedFor(urlEqualTo("/api/create"))
-                .withHeader("Authorization", equalTo("Bearer test-jwt-token"))
-                .withHeader("X-User-Role", equalTo("test-user"))
-                .withRequestBody(equalTo("{\"name\":\"test\"}")));
+        RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+        assertEquals("/test/create", recordedRequest.getPath());
+        assertEquals("Bearer test-jwt-token", recordedRequest.getHeader("Authorization"));
+        assertEquals("test-user", recordedRequest.getHeader("X-User-Role"));
+        assertEquals("{\"name\":\"test\"}", recordedRequest.getBody().readUtf8());
     }
 }

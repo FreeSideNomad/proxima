@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Header Presets</title>
 </head>
 <body>
+<div th:replace="layout :: layout(~{::content})">
     <div th:fragment="content">
         <!-- Presets Header -->
         <div class="lcars-panel">
@@ -41,7 +42,7 @@
                                 disabled>
                             ACTIVE
                         </button>
-                        <a th:href="@{/ui/presets/{name}(name=${preset.name})}" class="lcars-button info">
+                        <a th:href="@{/proxima/ui/presets/{name}(name=${preset.name})}" class="lcars-button info">
                             DETAILS
                         </a>
                     </div>
@@ -68,7 +69,7 @@
                 <h3 style="color: var(--lcars-red); margin-bottom: 15px;">NO PRESETS CONFIGURED</h3>
                 <p style="margin-bottom: 20px;">No header presets are currently configured in the system.</p>
                 <div class="lcars-alert warning">
-                    <strong>Configuration Required:</strong> Add preset configurations to your application.yml file or environment variables.
+                    <strong>Configuration Required:</strong> Add preset configurations to your config.json file.
                 </div>
             </div>
         </div>
@@ -79,24 +80,31 @@
                 Configuration Instructions
             </div>
             <p style="margin-bottom: 15px;">
-                To add new presets, update your <code>application.yml</code> configuration file:
+                To add new presets, update your <code>config.json</code> configuration file:
             </p>
-            <pre style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; color: var(--lcars-green); font-family: monospace; overflow-x: auto;">proxima:
-  presets:
-    - name: custom_preset
-      display-name: "Custom Preset"
-      headers:
-        Authorization: "Bearer your-token"
-        X-Custom-Header: "your-value"</pre>
+            <pre style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; color: var(--lcars-green); font-family: monospace; overflow-x: auto;">{
+  "presets": [
+    {
+      "name": "custom_preset",
+      "displayName": "Custom Preset",
+      "headers": {
+        "Authorization": "Bearer your-token",
+        "X-Custom-Header": "your-value"
+      },
+      "headerMappings": {}
+    }
+  ]
+}</pre>
             <div style="margin-top: 15px;">
-                <a th:href="@{/ui/status}" class="lcars-button">
+                <a th:href="@{/proxima/ui/status}" class="lcars-button">
                     Validate Configuration
                 </a>
-                <a href="/api/config/presets" target="_blank" class="lcars-button info">
+                <a href="/proxima/api/config/presets" target="_blank" class="lcars-button info">
                     View JSON API
                 </a>
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

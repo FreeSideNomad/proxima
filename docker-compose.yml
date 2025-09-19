@@ -1,6 +1,14 @@
-version: '3.8'
+version: '3.9'
 
 services:
+  nginx:
+    image: openresty/openresty:1.25.3.1-0-alpine
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
   proxima:
     build: .
     container_name: proxima-proxy
@@ -9,29 +17,13 @@ services:
     volumes:
       - ./config:/app/config:ro
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - PROXIMA_DOWNSTREAM_URL=http://httpbin:80
-      - PROXIMA_ACTIVE_PRESET=admin_user
-      - PROXIMA_ADMIN_AUTH=Bearer docker-admin-jwt-token
-      - PROXIMA_USER_AUTH=Bearer docker-user-jwt-token
-      - PROXIMA_API_AUTH=Bearer docker-api-jwt-token
-      - PROXIMA_USERS_SERVICE_URL=http://httpbin:80
-      - PROXIMA_INVOICES_SERVICE_URL=http://httpbin:80
-      - PROXIMA_AUTH_SERVICE_URL=http://httpbin:80
+      - DOCKER_CONTAINER=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    restart: unless-stopped
-
-  # Example downstream service for testing
-  httpbin:
-    image: kennethreitz/httpbin:latest
-    container_name: httpbin-test
-    ports:
-      - "8081:80"
     restart: unless-stopped
 
 networks:

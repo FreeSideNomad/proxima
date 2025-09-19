@@ -1,0 +1,51 @@
+{
+  "downstream": {
+    "url": "http://localhost:9999"
+  },
+  "activePreset": "regular_user",
+  "presets": [
+    {
+      "name": "admin_user",
+      "displayName": "Admin User",
+      "headers": {
+        "Authorization": "Bearer admin-jwt-token",
+        "X-User-Role": "admin",
+        "X-User-ID": "admin-001",
+        "X-Forwarded-By": "Proxima-Proxy"
+      },
+      "headerMappings": {
+        "Authorization": "Source-Authorization",
+        "User-Agent": "Source-User-Agent"
+      }
+    },
+    {
+      "name": "regular_user",
+      "displayName": "Regular User",
+      "headers": {
+        "Authorization": "Bearer user-jwt-token",
+        "X-User-Role": "user",
+        "X-User-ID": "user-001",
+        "X-Forwarded-By": "Proxima-Proxy"
+      },
+      "headerMappings": {
+        "Authorization": "Original-Auth"
+      }
+    },
+    {
+      "name": "api_client",
+      "displayName": "API Client",
+      "headers": {
+        "Authorization": "Bearer api-client-token",
+        "X-Client-Type": "api",
+        "X-Rate-Limit": "1000",
+        "X-Forwarded-By": "Proxima-Proxy"
+      },
+      "headerMappings": {}
+    }
+  ],
+  "routes": [],
+  "reservedRoutes": [
+    "/proxima/**",
+    "/actuator/**"
+  ]
+}

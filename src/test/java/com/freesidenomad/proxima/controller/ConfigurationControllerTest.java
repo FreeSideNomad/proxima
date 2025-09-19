@@ -2,6 +2,7 @@ package com.freesidenomad.proxima.controller;
 
 import com.freesidenomad.proxima.model.HeaderPreset;
 import com.freesidenomad.proxima.service.ConfigurationService;
+import com.freesidenomad.proxima.service.RouteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class ConfigurationControllerTest {
     @MockBean
     private ConfigurationService configurationService;
 
+    @MockBean
+    private RouteService routeService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -48,7 +52,7 @@ class ConfigurationControllerTest {
     void testGetAllPresets() throws Exception {
         when(configurationService.getAllPresets()).thenReturn(List.of(adminPreset));
 
-        mockMvc.perform(get("/api/config/presets"))
+        mockMvc.perform(get("/proxima/api/config/presets"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].name").value("admin_user"))
@@ -59,7 +63,7 @@ class ConfigurationControllerTest {
     void testGetPreset() throws Exception {
         when(configurationService.getPresetByName("admin_user")).thenReturn(Optional.of(adminPreset));
 
-        mockMvc.perform(get("/api/config/presets/admin_user"))
+        mockMvc.perform(get("/proxima/api/config/presets/admin_user"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value("admin_user"))
@@ -70,7 +74,7 @@ class ConfigurationControllerTest {
     void testGetPresetNotFound() throws Exception {
         when(configurationService.getPresetByName("non_existent")).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/config/presets/non_existent"))
+        mockMvc.perform(get("/proxima/api/config/presets/non_existent"))
                 .andExpect(status().isNotFound());
     }
 
@@ -79,7 +83,7 @@ class ConfigurationControllerTest {
         when(configurationService.getActivePreset()).thenReturn(adminPreset);
         when(configurationService.getActivePresetName()).thenReturn("admin_user");
 
-        mockMvc.perform(get("/api/config/active-preset"))
+        mockMvc.perform(get("/proxima/api/config/active-preset"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value("admin_user"))
@@ -90,7 +94,7 @@ class ConfigurationControllerTest {
     void testActivatePreset() throws Exception {
         when(configurationService.setActivePreset("admin_user")).thenReturn(true);
 
-        mockMvc.perform(post("/api/config/presets/admin_user/activate"))
+        mockMvc.perform(post("/proxima/api/config/presets/admin_user/activate"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value("success"))
@@ -101,7 +105,7 @@ class ConfigurationControllerTest {
     void testActivatePresetNotFound() throws Exception {
         when(configurationService.setActivePreset("non_existent")).thenReturn(false);
 
-        mockMvc.perform(post("/api/config/presets/non_existent/activate"))
+        mockMvc.perform(post("/proxima/api/config/presets/non_existent/activate"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value("error"));
@@ -115,7 +119,7 @@ class ConfigurationControllerTest {
         );
         when(configurationService.getCurrentHeaders()).thenReturn(headers);
 
-        mockMvc.perform(get("/api/config/headers"))
+        mockMvc.perform(get("/proxima/api/config/headers"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.Authorization").value("Bearer test-token"))
@@ -128,7 +132,7 @@ class ConfigurationControllerTest {
         when(configurationService.getActivePresetName()).thenReturn("admin_user");
         when(configurationService.getAllPresets()).thenReturn(List.of(adminPreset));
 
-        mockMvc.perform(get("/api/config/info"))
+        mockMvc.perform(get("/proxima/api/config/info"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.downstreamUrl").value("http://test-server.com"))
@@ -140,7 +144,7 @@ class ConfigurationControllerTest {
     void testValidateConfiguration() throws Exception {
         when(configurationService.validateConfiguration()).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/config/validate"))
+        mockMvc.perform(get("/proxima/api/config/validate"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.valid").value(true))

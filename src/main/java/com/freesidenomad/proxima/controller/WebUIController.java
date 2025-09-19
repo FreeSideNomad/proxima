@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/ui")
+@RequestMapping("/proxima/ui")
 public class WebUIController {
 
     @Autowired
@@ -45,7 +45,7 @@ public class WebUIController {
                     model.addAttribute("isActive", name.equals(configurationService.getActivePresetName()));
                     return "preset-detail";
                 })
-                .orElse("redirect:/ui/presets");
+                .orElse("redirect:/proxima/ui/presets");
     }
 
     @GetMapping("/headers")

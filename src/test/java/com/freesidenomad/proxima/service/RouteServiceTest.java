@@ -1,6 +1,7 @@
 package com.freesidenomad.proxima.service;
 
 import com.freesidenomad.proxima.config.ProximaProperties;
+import com.freesidenomad.proxima.model.ProximaConfig;
 import com.freesidenomad.proxima.model.RouteRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,61 +24,68 @@ class RouteServiceTest {
     @Mock
     private ProximaProperties proximaProperties;
 
+    @Mock
+    private JsonConfigurationService jsonConfigurationService;
+
     @InjectMocks
     private RouteService routeService;
 
-    private ProximaProperties.Downstream downstream;
+    private ProximaConfig mockConfig;
     private List<RouteRule> routes;
 
     @BeforeEach
     void setUp() {
-        downstream = new ProximaProperties.Downstream();
-        downstream.setUrl("http://default-service.com");
+        mockConfig = new ProximaConfig();
+        mockConfig.getDownstream().setUrl("http://default-service.com");
 
-        RouteRule userRoute = new RouteRule();
+        List<ProximaConfig.ConfigRoute> configRoutes = new ArrayList<>();
+
+        ProximaConfig.ConfigRoute userRoute = new ProximaConfig.ConfigRoute();
         userRoute.setPathPattern("/api/users/**");
         userRoute.setTargetUrl("http://user-service.com");
         userRoute.setDescription("User service");
         userRoute.setEnabled(true);
+        configRoutes.add(userRoute);
 
-        RouteRule invoiceRoute = new RouteRule();
+        ProximaConfig.ConfigRoute invoiceRoute = new ProximaConfig.ConfigRoute();
         invoiceRoute.setPathPattern("/api/invoices/**");
         invoiceRoute.setTargetUrl("http://invoice-service.com");
         invoiceRoute.setDescription("Invoice service");
         invoiceRoute.setEnabled(true);
+        configRoutes.add(invoiceRoute);
 
-        RouteRule disabledRoute = new RouteRule();
+        ProximaConfig.ConfigRoute disabledRoute = new ProximaConfig.ConfigRoute();
         disabledRoute.setPathPattern("/api/disabled/**");
         disabledRoute.setTargetUrl("http://disabled-service.com");
         disabledRoute.setDescription("Disabled service");
         disabledRoute.setEnabled(false);
+        configRoutes.add(disabledRoute);
 
-        routes = List.of(userRoute, invoiceRoute, disabledRoute);
+        mockConfig.setRoutes(configRoutes);
+        mockConfig.setReservedRoutes(Arrays.asList("/api/**", "/actuator/**", "/dashboard/**"));
     }
 
     @Test
     void testResolveTargetUrlWithMatchingRoute() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         String result = routeService.resolveTargetUrl("/api/users/123");
 
-        assertEquals("http://user-service.com/api/users/123", result);
+        assertEquals("http://user-service.com/123", result);
     }
 
     @Test
     void testResolveTargetUrlWithFallback() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
-        when(proximaProperties.getDownstream()).thenReturn(downstream);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
-        String result = routeService.resolveTargetUrl("/api/unknown/endpoint");
+        String result = routeService.resolveTargetUrl("/unknown/endpoint");
 
-        assertEquals("http://default-service.com/api/unknown/endpoint", result);
+        assertEquals("http://default-service.com/unknown/endpoint", result);
     }
 
     @Test
     void testResolveTargetUrlDisabledRoute() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
-        when(proximaProperties.getDownstream()).thenReturn(downstream);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         String result = routeService.resolveTargetUrl("/api/disabled/test");
 
@@ -84,7 +94,7 @@ class RouteServiceTest {
 
     @Test
     void testFindMatchingRoute() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         Optional<RouteRule> result = routeService.findMatchingRoute("/api/users/123");
 
@@ -94,47 +104,51 @@ class RouteServiceTest {
 
     @Test
     void testFindMatchingRouteNotFound() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
-        Optional<RouteRule> result = routeService.findMatchingRoute("/api/unknown");
+        Optional<RouteRule> result = routeService.findMatchingRoute("/unknown");
 
         assertFalse(result.isPresent());
     }
 
     @Test
     void testHasRoutes() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         assertTrue(routeService.hasRoutes());
     }
 
     @Test
     void testHasRoutesEmpty() {
-        when(proximaProperties.getRoutes()).thenReturn(List.of());
+        mockConfig.setRoutes(new ArrayList<>());
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         assertFalse(routeService.hasRoutes());
     }
 
     @Test
     void testGetRouteCount() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         assertEquals(3, routeService.getRouteCount());
     }
 
     @Test
     void testGetEnabledRouteCount() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         assertEquals(2, routeService.getEnabledRouteCount());
     }
 
     @Test
     void testGetAllRoutes() {
-        when(proximaProperties.getRoutes()).thenReturn(routes);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         List<RouteRule> result = routeService.getAllRoutes();
 
-        assertEquals(routes, result);
+        assertEquals(3, result.size());
+        assertEquals("/api/users/**", result.get(0).getPathPattern());
+        assertEquals("/api/invoices/**", result.get(1).getPathPattern());
+        assertEquals("/api/disabled/**", result.get(2).getPathPattern());
     }
 }

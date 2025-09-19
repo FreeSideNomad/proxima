@@ -16,58 +16,67 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ProxyServiceTest {
 
     @Mock
-    private ProximaProperties proximaProperties;
+    private ConfigurationService configurationService;
+
+    @Mock
+    private RouteService routeService;
 
     @InjectMocks
     private ProxyService proxyService;
 
-    private ProximaProperties.Downstream downstream;
-
     @BeforeEach
     void setUp() {
-        downstream = new ProximaProperties.Downstream();
-        downstream.setUrl("http://test-server.com");
-
-        when(proximaProperties.getDownstream()).thenReturn(downstream);
-
         Map<String, String> headers = new HashMap<>();
         headers.put("Authorization", "Bearer test-token");
         headers.put("X-User-Role", "admin");
 
-        when(proximaProperties.getHeaders()).thenReturn(headers);
+        Map<String, String> headerMappings = new HashMap<>();
+
+        lenient().when(configurationService.getCurrentHeaders()).thenReturn(headers);
+        lenient().when(configurationService.getActivePresetName()).thenReturn("admin_user");
+        lenient().when(configurationService.getActiveHeaderMappings()).thenReturn(headerMappings);
     }
 
     @Test
     void testForwardRequestBuildsCorrectTargetUrl() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Content-Type", "application/json");
+        request.setRemoteAddr("127.0.0.1");
 
         String method = "GET";
         String path = "/api/test";
+        String expectedUrl = "http://test-server.com/api/test";
+
+        when(routeService.resolveTargetUrl(path)).thenReturn(expectedUrl);
 
         CompletableFuture<ResponseEntity<String>> result =
             proxyService.forwardRequest(method, path, request, null);
 
         assertNotNull(result);
+        verify(routeService).resolveTargetUrl(path);
     }
 
     @Test
-    void testHeadersAreInjected() {
+    void testForwardRequestReservedRoute() {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader("Original-Header", "original-value");
+        request.setRemoteAddr("127.0.0.1");
 
-        Map<String, String> customHeaders = new HashMap<>();
-        customHeaders.put("Authorization", "Bearer injected-token");
-        customHeaders.put("X-Custom", "custom-value");
+        String method = "GET";
+        String path = "/proxima/api/config";
 
-        when(proximaProperties.getHeaders()).thenReturn(customHeaders);
+        when(routeService.resolveTargetUrl(path)).thenReturn(null);
 
-        assertNotNull(proxyService);
-        verify(proximaProperties, atLeastOnce()).getHeaders();
+        CompletableFuture<ResponseEntity<String>> result =
+            proxyService.forwardRequest(method, path, request, null);
+
+        assertNotNull(result);
+        ResponseEntity<String> response = result.join();
+        assertEquals(404, response.getStatusCodeValue());
     }
 }

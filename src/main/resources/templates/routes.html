@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Route Configuration</title>
 </head>
 <body>
+<div th:replace="layout :: layout(~{::content})">
     <div th:fragment="content">
         <!-- Routes Header -->
         <div class="lcars-panel">
@@ -165,11 +166,11 @@
                         <code>/api/users/**</code> - Matches all paths starting with <code>/api/users/</code>
                     </li>
                     <li style="margin: 8px 0; padding-left: 20px; position: relative;">
-                        <span style="position: absolute; left: 0; color: var(--lcars-orange);">•</span>
+                        <span style="position: absolute; left: 0; color: var(--lcars.orange);">•</span>
                         <code>/api/users</code> - Exact match only
                     </li>
                     <li style="margin: 8px 0; padding-left: 20px; position: relative;">
-                        <span style="position: absolute; left: 0; color: var(--lcars-orange);">•</span>
+                        <span style="position: absolute; left: 0; color: var(--lcars.orange);">•</span>
                         Routes are matched in configuration order
                     </li>
                 </ul>
@@ -182,5 +183,6 @@
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

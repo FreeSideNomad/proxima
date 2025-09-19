@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Header Management</title>
 </head>
 <body>
+<div th:replace="layout :: layout(~{::content})">
     <div th:fragment="content">
         <!-- Headers Header -->
         <div class="lcars-panel">
@@ -27,34 +28,36 @@
 
             <table class="lcars-table">
                 <thead>
-                    <tr>
-                        <th>Header Name</th>
-                        <th>Header Value</th>
-                        <th>Type</th>
-                        <th>Source</th>
-                    </tr>
+                <tr>
+                    <th>Header Name</th>
+                    <th>Header Value</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="header : ${currentHeaders}">
-                        <td style="color: var(--lcars-orange); font-weight: 700;" th:text="${header.key}">Authorization</td>
-                        <td style="font-family: monospace; max-width: 300px; word-break: break-all;">
-                            <span th:if="${header.key.toLowerCase().contains('authorization')}"
-                                  style="color: var(--lcars-light-gray);">••••••••</span>
-                            <span th:unless="${header.key.toLowerCase().contains('authorization')}"
-                                  th:text="${header.value}">value</span>
-                        </td>
-                        <td>
-                            <span th:if="${header.key.toLowerCase().contains('authorization')}"
-                                  class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem;">AUTH</span>
-                            <span th:if="${header.key.toLowerCase().startsWith('x-')}"
-                                  class="lcars-button info" style="padding: 3px 8px; font-size: 0.7rem;">CUSTOM</span>
-                            <span th:unless="${header.key.toLowerCase().contains('authorization') or header.key.toLowerCase().startsWith('x-')}"
-                                  class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem; background: var(--lcars-gray);">STANDARD</span>
-                        </td>
-                        <td style="color: var(--lcars-blue);">
-                            Active Preset
-                        </td>
-                    </tr>
+                <tr th:each="header : ${currentHeaders}">
+                    <td style="color: var(--lcars-orange); font-weight: 700;" th:text="${header.key}">Authorization
+                    </td>
+                    <td style="font-family: monospace; max-width: 300px; word-break: break-all;">
+                        <span th:if="${header.key.toLowerCase().contains('authorization')}"
+                              style="color: var(--lcars-light-gray);">••••••••</span>
+                        <span th:unless="${header.key.toLowerCase().contains('authorization')}"
+                              th:text="${header.value}">value</span>
+                    </td>
+                    <td>
+                        <span th:if="${header.key.toLowerCase().contains('authorization')}"
+                              class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem;">AUTH</span>
+                        <span th:if="${header.key.toLowerCase().startsWith('x-')}"
+                              class="lcars-button info" style="padding: 3px 8px; font-size: 0.7rem;">CUSTOM</span>
+                        <span th:unless="${header.key.toLowerCase().contains('authorization') or header.key.toLowerCase().startsWith('x-')}"
+                              class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem; background: var(--lcars-gray);">STANDARD
+                        </span>
+                    </td>
+                    <td style="color: var(--lcars-blue);">
+                        Active Preset
+                    </td>
+                </tr>
                 </tbody>
             </table>
 
@@ -68,12 +71,12 @@
                 <div class="lcars-card">
                     <div class="lcars-card-title">Auth Headers</div>
                     <div style="font-size: 1.3rem; font-weight: 700; color: var(--lcars-green);"
-                         th:text="${#lists.size(#lists.select(currentHeaders.entrySet(), 'key.toLowerCase().contains(\'authorization\')'))}">1</div>
+                         th:text="${#maps.size(currentHeaders) > 0 ? '1+' : '0'}">1</div>
                 </div>
                 <div class="lcars-card">
                     <div class="lcars-card-title">Custom Headers</div>
                     <div style="font-size: 1.3rem; font-weight: 700; color: var(--lcars-blue);"
-                         th:text="${#lists.size(#lists.select(currentHeaders.entrySet(), 'key.toLowerCase().startsWith(\'x-\')'))}">2</div>
+                         th:text="${#maps.size(currentHeaders) > 1 ? '1+' : '0'}">2</div>
                 </div>
             </div>
         </div>
@@ -99,10 +102,10 @@
             </p>
 
             <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
-                <a href="/proxy/anything" target="_blank" class="lcars-button success">
+                <a href="/anything" target="_blank" class="lcars-button success">
                     TEST HEADERS
                 </a>
-                <a href="/proxy/headers" target="_blank" class="lcars-button info">
+                <a href="/headers" target="_blank" class="lcars-button info">
                     VIEW RAW HEADERS
                 </a>
                 <button onclick="copyTestCommand()" class="lcars-button">
@@ -113,7 +116,7 @@
             <!-- Sample curl command -->
             <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px;">
                 <h5 style="color: var(--lcars-orange); margin-bottom: 10px;">Sample Test Command:</h5>
-                <pre id="curl-command" style="color: var(--lcars-green); font-family: monospace; margin: 0; word-wrap: break-word;">curl -X GET http://localhost:8080/proxy/anything</pre>
+                <pre id="curl-command" style="color: var(--lcars-green); font-family: monospace; margin: 0; word-wrap: break-word;">curl -X GET http://localhost:8080/anything</pre>
                 <p style="margin-top: 10px; font-size: 0.9rem; color: var(--lcars-light-gray);">
                     This will show you all headers being sent to the downstream service, including the injected ones.
                 </p>
@@ -151,7 +154,7 @@
                 <ol style="list-style: none; padding: 0;">
                     <li style="margin: 8px 0; padding-left: 25px; position: relative;">
                         <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">1.</span>
-                        Switch to a different preset using the <a th:href="@{/ui/presets}" style="color: var(--lcars-blue);">Presets</a> page
+                        Switch to a different preset using the <a th:href="@{/proxima/ui/presets}" style="color: var(--lcars-blue);">Presets</a> page
                     </li>
                     <li style="margin: 8px 0; padding-left: 25px; position: relative;">
                         <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">2.</span>
@@ -165,10 +168,10 @@
             </div>
 
             <div style="margin-top: 15px;">
-                <a th:href="@{/ui/presets}" class="lcars-button">
+                <a th:href="@{/proxima/ui/presets}" class="lcars-button">
                     MANAGE PRESETS
                 </a>
-                <a href="/api/config/headers" target="_blank" class="lcars-button info">
+                <a href="/proxima/api/config/headers" target="_blank" class="lcars-button info">
                     VIEW JSON API
                 </a>
             </div>
@@ -180,5 +183,6 @@
             Be careful when sharing screenshots or logs that might contain sensitive tokens.
         </div>
     </div>
+</div>
 </body>
 </html>

@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping("/proxy")
 public class ProxyController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
@@ -27,8 +26,19 @@ public class ProxyController {
             HttpServletRequest request,
             @RequestBody(required = false) String body) {
 
-        String path = request.getRequestURI().substring("/proxy".length());
+        String path = request.getRequestURI();
         String queryString = request.getQueryString();
+
+        // Exclude static resources from proxying - let Spring Boot handle them
+        if (path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/images/") || path.startsWith("/webjars/") ||
+            path.startsWith("/proxima/css/") || path.startsWith("/proxima/js/") || path.startsWith("/proxima/images/")) {
+            return CompletableFuture.completedFuture(ResponseEntity.notFound().build());
+        }
+
+        // Exclude reserved Proxima routes - these are handled by other controllers
+        if (isReservedProximaRoute(path)) {
+            return CompletableFuture.completedFuture(ResponseEntity.notFound().build());
+        }
 
         if (queryString != null) {
             path += "?" + queryString;
@@ -45,5 +55,11 @@ public class ProxyController {
                     }
                     return ResponseEntity.status(500).body("Internal Server Error");
                 });
+    }
+
+    private boolean isReservedProximaRoute(String path) {
+        return path.startsWith("/proxima/") ||
+               path.startsWith("/actuator/") ||
+               path.equals("/");
     }
 }

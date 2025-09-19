@@ -1,0 +1,88 @@
+{
+  "downstream": {
+    "url": "http://nginx:80"
+  },
+  "activePreset": "admin_user",
+  "presets": [
+    {
+      "name": "admin_user",
+      "displayName": "Admin User",
+      "headers": {
+        "Authorization": "Bearer admin-jwt-token",
+        "X-User-Role": "admin",
+        "X-User-ID": "admin-001",
+        "X-Forwarded-By": "Proxima-Proxy"
+      },
+      "headerMappings": {
+        "Authorization": "Source-Authorization",
+        "User-Agent": "Source-User-Agent"
+      }
+    },
+    {
+      "name": "regular_user",
+      "displayName": "Regular User",
+      "headers": {
+        "Authorization": "Bearer user-jwt-token",
+        "X-User-Role": "user",
+        "X-User-ID": "user-001",
+        "X-Forwarded-By": "Proxima-Proxy"
+      },
+      "headerMappings": {
+        "Authorization": "Original-Auth"
+      }
+    },
+    {
+      "name": "api_client",
+      "displayName": "API Client",
+      "headers": {
+        "Authorization": "Bearer api-client-token",
+        "X-Client-Type": "api",
+        "X-Rate-Limit": "1000",
+        "X-Forwarded-By": "Proxima-Proxy"
+      },
+      "headerMappings": {}
+    }
+  ],
+  "routes": [
+    {
+      "pathPattern": "/api/users",
+      "targetUrl": "http://nginx:80",
+      "description": "User management service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/api/companies",
+      "targetUrl": "http://nginx:80",
+      "description": "Company management service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/api/orders",
+      "targetUrl": "http://nginx:80",
+      "description": "Order processing service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/api/products/**",
+      "targetUrl": "http://nginx:80",
+      "description": "Product catalog service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/api/auth/**",
+      "targetUrl": "http://nginx:80",
+      "description": "Authentication service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/v1/legacy",
+      "targetUrl": "http://nginx:80",
+      "description": "Legacy API endpoints",
+      "enabled": true
+    }
+  ],
+  "reservedRoutes": [
+    "/proxima/**",
+    "/actuator/**"
+  ]
+}

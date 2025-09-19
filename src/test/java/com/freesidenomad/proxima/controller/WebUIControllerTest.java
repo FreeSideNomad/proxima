@@ -58,7 +58,7 @@ class WebUIControllerTest {
         when(configurationService.getAllPresets()).thenReturn(List.of(adminPreset));
         when(configurationService.getCurrentHeaders()).thenReturn(adminPreset.getHeaders());
 
-        mockMvc.perform(get("/ui"))
+        mockMvc.perform(get("/proxima/ui"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
                 .andExpect(model().attribute("activePreset", "admin_user"))
@@ -71,7 +71,7 @@ class WebUIControllerTest {
         when(configurationService.getAllPresets()).thenReturn(List.of(adminPreset));
         when(configurationService.getActivePresetName()).thenReturn("admin_user");
 
-        mockMvc.perform(get("/ui/presets"))
+        mockMvc.perform(get("/proxima/ui/presets"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("presets"))
                 .andExpect(model().attribute("activePreset", "admin_user"));
@@ -82,7 +82,7 @@ class WebUIControllerTest {
         when(configurationService.getPresetByName("admin_user")).thenReturn(Optional.of(adminPreset));
         when(configurationService.getActivePresetName()).thenReturn("admin_user");
 
-        mockMvc.perform(get("/ui/presets/admin_user"))
+        mockMvc.perform(get("/proxima/ui/presets/admin_user"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("preset-detail"))
                 .andExpect(model().attribute("preset", adminPreset))
@@ -93,9 +93,9 @@ class WebUIControllerTest {
     void testPresetDetailNotFound() throws Exception {
         when(configurationService.getPresetByName("non_existent")).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/ui/presets/non_existent"))
+        mockMvc.perform(get("/proxima/ui/presets/non_existent"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/ui/presets"));
+                .andExpect(redirectedUrl("/proxima/ui/presets"));
     }
 
     @Test
@@ -103,7 +103,7 @@ class WebUIControllerTest {
         when(configurationService.getCurrentHeaders()).thenReturn(adminPreset.getHeaders());
         when(configurationService.getActivePresetName()).thenReturn("admin_user");
 
-        mockMvc.perform(get("/ui/headers"))
+        mockMvc.perform(get("/proxima/ui/headers"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("headers"))
                 .andExpect(model().attribute("activePreset", "admin_user"));
@@ -116,7 +116,7 @@ class WebUIControllerTest {
         when(routeService.getRouteCount()).thenReturn(1);
         when(routeService.getEnabledRouteCount()).thenReturn(1L);
 
-        mockMvc.perform(get("/ui/routes"))
+        mockMvc.perform(get("/proxima/ui/routes"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("routes"))
                 .andExpect(model().attribute("hasRoutes", true))
@@ -129,7 +129,7 @@ class WebUIControllerTest {
         when(configurationService.getActivePresetName()).thenReturn("admin_user");
         when(configurationService.validateConfiguration()).thenReturn(List.of());
 
-        mockMvc.perform(get("/ui/status"))
+        mockMvc.perform(get("/proxima/ui/status"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("status"))
                 .andExpect(model().attribute("activePreset", "admin_user"));

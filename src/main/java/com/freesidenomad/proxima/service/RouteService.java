@@ -1,6 +1,7 @@
 package com.freesidenomad.proxima.service;
 
 import com.freesidenomad.proxima.config.ProximaProperties;
+import com.freesidenomad.proxima.model.ProximaConfig;
 import com.freesidenomad.proxima.model.RouteRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RouteService {
@@ -18,49 +20,86 @@ public class RouteService {
     @Autowired
     private ProximaProperties proximaProperties;
 
+    @Autowired
+    private JsonConfigurationService jsonConfigurationService;
+
     public String resolveTargetUrl(String path) {
-        if (proximaProperties.getRoutes() != null) {
-            for (RouteRule route : proximaProperties.getRoutes()) {
-                if (route.matches(path)) {
-                    String targetUrl = route.buildTargetUrl(path);
-                    logger.debug("Route matched: {} -> {} (using rule: {})",
-                               path, targetUrl, route.getPathPattern());
-                    return targetUrl;
-                }
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+
+        // Check if path matches reserved routes
+        if (isReservedRoute(path, config)) {
+            logger.debug("Reserved route detected, not proxying: {}", path);
+            return null;
+        }
+
+        // Check configured routes in order (first match wins)
+        for (ProximaConfig.ConfigRoute route : config.getRoutes()) {
+            if (route.matches(path)) {
+                String targetUrl = route.buildTargetUrl(path);
+                logger.info("Route matched: [{}] {} -> {} (pattern: {})",
+                           route.getDescription(), path, targetUrl, route.getPathPattern());
+                return targetUrl;
             }
         }
 
-        // Fallback to default downstream URL
-        String fallbackUrl = proximaProperties.getDownstream().getUrl() + path;
+        // Fallback to default downstream URL for all other routes
+        String fallbackUrl = config.getDownstream().getUrl() + path;
         logger.debug("No route matched for {}, using default: {}", path, fallbackUrl);
         return fallbackUrl;
     }
 
+    private boolean isReservedRoute(String path, ProximaConfig config) {
+        // Check against Proxima's reserved routes
+        // Note: Static resources (/css/, /js/, etc.) are filtered by ProxyController, not here
+        return path.startsWith("/proxima/") ||
+               path.startsWith("/actuator/") ||
+               path.equals("/");
+    }
+
+    private boolean matchesPattern(String path, String pattern) {
+        if (pattern.endsWith("**")) {
+            String prefix = pattern.substring(0, pattern.length() - 2);
+            return path.startsWith(prefix);
+        }
+        return path.equals(pattern);
+    }
+
     public List<RouteRule> getAllRoutes() {
-        return proximaProperties.getRoutes();
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getRoutes().stream()
+                .map(this::convertToRouteRule)
+                .collect(Collectors.toList());
     }
 
     public Optional<RouteRule> findMatchingRoute(String path) {
-        if (proximaProperties.getRoutes() != null) {
-            return proximaProperties.getRoutes().stream()
-                    .filter(route -> route.matches(path))
-                    .findFirst();
-        }
-        return Optional.empty();
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getRoutes().stream()
+                .filter(route -> route.matches(path))
+                .map(this::convertToRouteRule)
+                .findFirst();
     }
 
     public boolean hasRoutes() {
-        return proximaProperties.getRoutes() != null && !proximaProperties.getRoutes().isEmpty();
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return !config.getRoutes().isEmpty();
     }
 
     public int getRouteCount() {
-        return proximaProperties.getRoutes() != null ? proximaProperties.getRoutes().size() : 0;
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getRoutes().size();
     }
 
     public long getEnabledRouteCount() {
-        if (proximaProperties.getRoutes() == null) {
-            return 0;
-        }
-        return proximaProperties.getRoutes().stream().filter(RouteRule::isEnabled).count();
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getRoutes().stream().filter(ProximaConfig.ConfigRoute::isEnabled).count();
+    }
+
+    private RouteRule convertToRouteRule(ProximaConfig.ConfigRoute configRoute) {
+        RouteRule rule = new RouteRule();
+        rule.setPathPattern(configRoute.getPathPattern());
+        rule.setTargetUrl(configRoute.getTargetUrl());
+        rule.setDescription(configRoute.getDescription());
+        rule.setEnabled(configRoute.isEnabled());
+        return rule;
     }
 }

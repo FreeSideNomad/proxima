@@ -41,7 +41,7 @@ class ProximaUI {
 
     async loadCurrentConfig() {
         try {
-            const response = await fetch('/api/config/info');
+            const response = await fetch('/proxima/api/config/info');
             const config = await response.json();
             this.updateConfigDisplay(config);
         } catch (error) {
@@ -51,7 +51,7 @@ class ProximaUI {
 
     async activatePreset(presetName) {
         try {
-            const response = await fetch(`/api/config/presets/${presetName}/activate`, {
+            const response = await fetch(`/proxima/api/config/presets/${presetName}/activate`, {
                 method: 'POST'
             });
 

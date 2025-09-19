@@ -63,9 +63,8 @@ public class RouteRule {
 
     public String buildTargetUrl(String originalPath) {
         if (pathPattern.endsWith("/**")) {
-            String prefix = pathPattern.substring(0, pathPattern.length() - 3);
-            String remainder = originalPath.substring(prefix.length());
-            return targetUrl + remainder;
+            // Append the full original path to the target URL
+            return targetUrl + originalPath;
         }
 
         return targetUrl;

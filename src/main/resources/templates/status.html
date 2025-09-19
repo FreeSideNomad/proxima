@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>System Status</title>
 </head>
 <body>
+<div th:replace="layout :: layout(~{::content})">
     <div th:fragment="content">
         <!-- Status Header -->
         <div class="lcars-panel">
@@ -32,7 +33,7 @@
 
             <div th:if="${configErrors == null or configErrors.isEmpty()}">
                 <div class="lcars-alert success">
-                    <strong>✓ Configuration Valid</strong> - All presets and settings are properly configured.
+                    <strong>&#10003; Configuration Valid</strong> - All presets and settings are properly configured.
                 </div>
             </div>
 
@@ -40,7 +41,7 @@
                 <button onclick="validateConfig()" class="lcars-button">
                     REVALIDATE CONFIG
                 </button>
-                <a href="/api/config/validate" target="_blank" class="lcars-button info">
+                <a href="/proxima/api/config/validate" target="_blank" class="lcars-button info">
                     VIEW JSON
                 </a>
             </div>
@@ -51,25 +52,19 @@
                 async function validateConfig() {
                     const resultDiv = document.getElementById('validation-result');
                     try {
-                        const response = await fetch('/api/config/validate');
+                        const response = await fetch('/proxima/api/config/validate');
                         const result = await response.json();
 
                         if (result.valid) {
-                            resultDiv.innerHTML = '<div class="lcars-alert success">✓ Configuration is valid</div>';
+                            resultDiv.innerHTML = '<div class="lcars-alert success">&#10003; Configuration is valid</div>';
                         } else {
                             const errorList = result.errors.map(error => `<li>${error}</li>`).join('');
-                            resultDiv.innerHTML = `
-                                <div class="lcars-alert error">
-                                    <strong>Configuration Errors:</strong>
-                                    <ul style="margin-top: 10px;">${errorList}</ul>
-                                </div>
-                            `;
+                            resultDiv.innerHTML = `<ul>${errorList}</ul>`;
                         }
-                        resultDiv.style.display = 'block';
-                    } catch (error) {
+                    } catch (e) {
                         resultDiv.innerHTML = '<div class="lcars-alert error">Error validating configuration</div>';
-                        resultDiv.style.display = 'block';
                     }
+                    resultDiv.style.display = 'block';
                 }
             </script>
         </div>
@@ -161,41 +156,45 @@
 
             <table class="lcars-table">
                 <thead>
-                    <tr>
-                        <th>Endpoint</th>
-                        <th>Purpose</th>
-                        <th>Actions</th>
-                    </tr>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Purpose</th>
+                    <th>Actions</th>
+                </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><code>/proxy/*</code></td>
-                        <td>Reverse proxy endpoint</td>
-                        <td>
-                            <a href="/proxy/anything" target="_blank" class="lcars-button" style="padding: 2px 8px; font-size: 0.8rem;">TEST</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>/api/config/*</code></td>
-                        <td>Configuration management</td>
-                        <td>
-                            <a href="/api/config/info" target="_blank" class="lcars-button info" style="padding: 2px 8px; font-size: 0.8rem;">VIEW</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>/actuator/*</code></td>
-                        <td>Health and monitoring</td>
-                        <td>
-                            <a href="/actuator/health" target="_blank" class="lcars-button" style="padding: 2px 8px; font-size: 0.8rem;">CHECK</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>/ui/*</code></td>
-                        <td>Web interface</td>
-                        <td>
-                            <a th:href="@{/ui}" class="lcars-button success" style="padding: 2px 8px; font-size: 0.8rem;">OPEN</a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td><code>/proxy/*</code></td>
+                    <td>Reverse proxy endpoint</td>
+                    <td>
+                        <a href="/proxy/anything" target="_blank" class="lcars-button"
+                           style="padding: 2px 8px; font-size: 0.8rem;">TEST</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>/proxima/api/config/*</code></td>
+                    <td>Configuration management</td>
+                    <td>
+                        <a href="/proxima/api/config/info" target="_blank" class="lcars-button info"
+                           style="padding: 2px 8px; font-size: 0.8rem;">VIEW</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>/actuator/*</code></td>
+                    <td>Health and monitoring</td>
+                    <td>
+                        <a href="/actuator/health" target="_blank" class="lcars-button"
+                           style="padding: 2px 8px; font-size: 0.8rem;">CHECK</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>/proxima/ui/*</code></td>
+                    <td>Web interface</td>
+                    <td>
+                        <a th:href="@{/ui}" class="lcars-button success"
+                           style="padding: 2px 8px; font-size: 0.8rem;">OPEN</a>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -266,5 +265,6 @@
             </script>
         </div>
     </div>
+</div>
 </body>
 </html>

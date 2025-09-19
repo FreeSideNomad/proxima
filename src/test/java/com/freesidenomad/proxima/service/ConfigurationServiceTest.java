@@ -2,6 +2,7 @@ package com.freesidenomad.proxima.service;
 
 import com.freesidenomad.proxima.config.ProximaProperties;
 import com.freesidenomad.proxima.model.HeaderPreset;
+import com.freesidenomad.proxima.model.ProximaConfig;
 import com.freesidenomad.proxima.validation.ConfigurationValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +26,9 @@ class ConfigurationServiceTest {
     private ProximaProperties proximaProperties;
 
     @Mock
+    private JsonConfigurationService jsonConfigurationService;
+
+    @Mock
     private ConfigurationValidator validator;
 
     @InjectMocks
@@ -32,6 +37,7 @@ class ConfigurationServiceTest {
     private HeaderPreset adminPreset;
     private HeaderPreset userPreset;
     private List<HeaderPreset> presets;
+    private ProximaConfig mockConfig;
 
     @BeforeEach
     void setUp() {
@@ -52,21 +58,49 @@ class ConfigurationServiceTest {
         ));
 
         presets = List.of(adminPreset, userPreset);
+
+        // Create mock config
+        mockConfig = new ProximaConfig();
+        mockConfig.setActivePreset("admin_user");
+
+        List<ProximaConfig.ConfigHeaderPreset> configPresets = new ArrayList<>();
+
+        ProximaConfig.ConfigHeaderPreset adminConfigPreset = new ProximaConfig.ConfigHeaderPreset();
+        adminConfigPreset.setName("admin_user");
+        adminConfigPreset.setDisplayName("Admin User");
+        adminConfigPreset.setHeaders(Map.of(
+                "Authorization", "Bearer admin-token",
+                "X-User-Role", "admin"
+        ));
+        configPresets.add(adminConfigPreset);
+
+        ProximaConfig.ConfigHeaderPreset userConfigPreset = new ProximaConfig.ConfigHeaderPreset();
+        userConfigPreset.setName("regular_user");
+        userConfigPreset.setDisplayName("Regular User");
+        userConfigPreset.setHeaders(Map.of(
+                "Authorization", "Bearer user-token",
+                "X-User-Role", "user"
+        ));
+        configPresets.add(userConfigPreset);
+
+        mockConfig.setPresets(configPresets);
     }
 
     @Test
     void testGetAllPresets() {
-        when(proximaProperties.getPresets()).thenReturn(presets);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         List<HeaderPreset> result = configurationService.getAllPresets();
 
-        assertEquals(presets, result);
-        verify(proximaProperties).getPresets();
+        assertEquals(2, result.size());
+        assertEquals("admin_user", result.get(0).getName());
+        assertEquals("regular_user", result.get(1).getName());
+        verify(jsonConfigurationService).loadConfiguration();
     }
 
     @Test
     void testGetPresetByName() {
-        when(proximaProperties.getPresets()).thenReturn(presets);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         Optional<HeaderPreset> result = configurationService.getPresetByName("admin_user");
 
@@ -76,7 +110,7 @@ class ConfigurationServiceTest {
 
     @Test
     void testGetPresetByNameNotFound() {
-        when(proximaProperties.getPresets()).thenReturn(presets);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         Optional<HeaderPreset> result = configurationService.getPresetByName("non_existent");
 
@@ -85,8 +119,7 @@ class ConfigurationServiceTest {
 
     @Test
     void testGetActivePreset() {
-        when(proximaProperties.getActivePreset()).thenReturn("admin_user");
-        when(proximaProperties.getPresets()).thenReturn(presets);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         HeaderPreset result = configurationService.getActivePreset();
 
@@ -96,8 +129,8 @@ class ConfigurationServiceTest {
 
     @Test
     void testGetActivePresetFallbackToFirst() {
-        when(proximaProperties.getActivePreset()).thenReturn(null);
-        when(proximaProperties.getPresets()).thenReturn(presets);
+        mockConfig.setActivePreset(null);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         HeaderPreset result = configurationService.getActivePreset();
 
@@ -106,29 +139,28 @@ class ConfigurationServiceTest {
     }
 
     @Test
-    void testSetActivePreset() {
-        when(proximaProperties.getPresets()).thenReturn(presets);
+    void testSetActivePreset() throws Exception {
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         boolean result = configurationService.setActivePreset("regular_user");
 
         assertTrue(result);
-        verify(proximaProperties).setActivePreset("regular_user");
+        verify(jsonConfigurationService).saveConfiguration(any(ProximaConfig.class));
     }
 
     @Test
-    void testSetActivePresetNotFound() {
-        when(proximaProperties.getPresets()).thenReturn(presets);
+    void testSetActivePresetNotFound() throws Exception {
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         boolean result = configurationService.setActivePreset("non_existent");
 
         assertFalse(result);
-        verify(proximaProperties, never()).setActivePreset(any());
+        verify(jsonConfigurationService, never()).saveConfiguration(any());
     }
 
     @Test
     void testGetCurrentHeaders() {
-        when(proximaProperties.getActivePreset()).thenReturn("admin_user");
-        when(proximaProperties.getPresets()).thenReturn(presets);
+        when(jsonConfigurationService.loadConfiguration()).thenReturn(mockConfig);
 
         Map<String, String> result = configurationService.getCurrentHeaders();
 

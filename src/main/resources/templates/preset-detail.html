@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="'Preset: ' + ${preset.displayName}">Preset Details</title>
+    <title th:text="'Preset: ' + (${preset != null and preset.displayName != null ? preset.displayName : 'Unknown'})">Preset Details</title>
 </head>
 <body>
+<div th:replace="layout :: layout(~{::content})">
     <div th:fragment="content">
         <!-- Preset Header -->
         <div class="lcars-panel">
             <div class="lcars-panel-header">
-                <span th:text="${preset.displayName}">Admin User</span> Configuration
+                <span th:text="${preset != null and preset.displayName != null ? preset.displayName : 'Unknown'}">Admin User</span> Configuration
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div>
                     <h3 style="color: var(--lcars-orange); margin: 0; display: flex; align-items: center;">
                         <span th:if="${isActive}" class="lcars-status active" style="margin-right: 10px;"></span>
                         <span th:unless="${isActive}" class="lcars-status inactive" style="margin-right: 10px;"></span>
-                        <span th:text="${preset.displayName}">Admin User</span>
+                        <span th:text="${preset != null and preset.displayName != null ? preset.displayName : 'Unknown'}">Admin User</span>
                     </h3>
                     <p style="margin: 5px 0; color: var(--lcars-light-gray);">
-                        Preset ID: <code th:text="${preset.name}">admin_user</code>
+                        Preset ID: <code th:text="${preset != null and preset.name != null ? preset.name : 'N/A'}">admin_user</code>
                     </p>
                     <p style="margin: 5px 0;">
                         <span th:if="${isActive}" class="lcars-alert success" style="padding: 5px 10px; display: inline-block;">
@@ -32,7 +33,7 @@
                 <div>
                     <button th:unless="${isActive}"
                             class="lcars-button activate-preset"
-                            th:data-preset="${preset.name}">
+                            th:data-preset="${preset != null and preset.name != null ? preset.name : ''}">
                         ACTIVATE PRESET
                     </button>
                     <button th:if="${isActive}"
@@ -45,7 +46,7 @@
         </div>
 
         <!-- Headers Configuration -->
-        <div class="lcars-panel" th:if="${preset.headers != null and !preset.headers.isEmpty()}">
+        <div class="lcars-panel" th:if="${preset != null and preset.headers != null and !preset.headers.isEmpty()}">
             <div class="lcars-panel-header">
                 HTTP Headers Configuration
             </div>
@@ -64,35 +65,19 @@
                         <td style="font-family: monospace; max-width: 300px; word-break: break-all;" th:text="${header.value}">Bearer token...</td>
                         <td>
                             <span th:if="${header.key.toLowerCase().contains('authorization')}"
-                                  class="lcars-button" style="padding: 2px 8px; font-size: 0.7rem;">AUTH</span>
+                                  class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem;">AUTH</span>
                             <span th:if="${header.key.toLowerCase().startsWith('x-')}"
-                                  class="lcars-button info" style="padding: 2px 8px; font-size: 0.7rem;">CUSTOM</span>
+                                  class="lcars-button info" style="padding: 3px 8px; font-size: 0.7rem;">CUSTOM</span>
                             <span th:unless="${header.key.toLowerCase().contains('authorization') or header.key.toLowerCase().startsWith('x-')}"
-                                  class="lcars-button" style="padding: 2px 8px; font-size: 0.7rem; background: var(--lcars-gray);">STANDARD</span>
+                                  class="lcars-button" style="padding: 3px 8px; font-size: 0.7rem; background: var(--lcars-gray);">STANDARD</span>
                         </td>
                     </tr>
                 </tbody>
             </table>
-
-            <!-- Header Summary -->
-            <div style="margin-top: 20px; padding: 15px; background-color: var(--lcars-black); border-radius: 5px;">
-                <h4 style="color: var(--lcars-blue); margin-bottom: 10px;">Header Summary</h4>
-                <p style="margin: 5px 0;">
-                    <strong>Total Headers:</strong> <span th:text="${preset.headers.size()}">3</span>
-                </p>
-                <p style="margin: 5px 0;">
-                    <strong>Authorization Headers:</strong>
-                    <span th:text="${#lists.size(#lists.select(preset.headers.entrySet(), 'key.toLowerCase().contains(\'authorization\')'))}">1</span>
-                </p>
-                <p style="margin: 5px 0;">
-                    <strong>Custom Headers (X-*):</strong>
-                    <span th:text="${#lists.size(#lists.select(preset.headers.entrySet(), 'key.toLowerCase().startsWith(\'x-\')'))}">2</span>
-                </p>
-            </div>
         </div>
 
         <!-- No Headers Message -->
-        <div class="lcars-panel" th:if="${preset.headers == null or preset.headers.isEmpty()}">
+        <div class="lcars-panel" th:if="${preset == null or preset.headers == null or preset.headers.isEmpty()}">
             <div style="text-align: center; padding: 40px;">
                 <h3 style="color: var(--lcars-red); margin-bottom: 15px;">NO HEADERS CONFIGURED</h3>
                 <p>This preset does not have any headers configured.</p>
@@ -111,13 +96,13 @@
             <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
                 <button th:unless="${isActive}"
                         class="lcars-button activate-preset"
-                        th:data-preset="${preset.name}">
+                        th:data-preset="${preset != null and preset.name != null ? preset.name : ''}">
                     ACTIVATE & TEST
                 </button>
-                <a href="/proxy/anything" target="_blank" class="lcars-button success">
+                <a href="/anything" target="_blank" class="lcars-button success">
                     TEST PROXY REQUEST
                 </a>
-                <a href="/api/config/validate" target="_blank" class="lcars-button info">
+                <a href="/proxima/api/config/validate" target="_blank" class="lcars-button info">
                     VALIDATE CONFIG
                 </a>
             </div>
@@ -125,7 +110,7 @@
             <!-- Sample curl command -->
             <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px;">
                 <h5 style="color: var(--lcars-orange); margin-bottom: 10px;">Sample Test Command:</h5>
-                <pre style="color: var(--lcars-green); font-family: monospace; margin: 0;">curl -X GET http://localhost:8080/proxy/anything</pre>
+                <pre style="color: var(--lcars-green); font-family: monospace; margin: 0;">curl -X GET http://localhost:8080/anything</pre>
                 <p style="margin-top: 10px; font-size: 0.9rem; color: var(--lcars-light-gray);">
                     This will show you the headers being injected by the current preset.
                 </p>
@@ -134,13 +119,14 @@
 
         <!-- Navigation -->
         <div style="margin-top: 20px;">
-            <a th:href="@{/ui/presets}" class="lcars-button">
+            <a th:href="@{/proxima/ui/presets}" class="lcars-button">
                 ← BACK TO PRESETS
             </a>
-            <a th:href="@{/ui/headers}" class="lcars-button info">
+            <a th:href="@{/proxima/ui/headers}" class="lcars-button info">
                 VIEW ALL HEADERS
             </a>
         </div>
     </div>
+</div>
 </body>
 </html>

@@ -2,6 +2,7 @@ package com.freesidenomad.proxima.service;
 
 import com.freesidenomad.proxima.config.ProximaProperties;
 import com.freesidenomad.proxima.model.HeaderPreset;
+import com.freesidenomad.proxima.model.ProximaConfig;
 import com.freesidenomad.proxima.validation.ConfigurationValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ConfigurationService {
@@ -21,34 +23,39 @@ public class ConfigurationService {
     private ProximaProperties proximaProperties;
 
     @Autowired
+    private JsonConfigurationService jsonConfigurationService;
+
+    @Autowired
     private ConfigurationValidator validator;
 
     public List<HeaderPreset> getAllPresets() {
-        return proximaProperties.getPresets();
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getPresets().stream()
+                .map(this::convertToHeaderPreset)
+                .collect(Collectors.toList());
     }
 
     public Optional<HeaderPreset> getPresetByName(String name) {
-        if (proximaProperties.getPresets() == null) {
-            return Optional.empty();
-        }
-
-        return proximaProperties.getPresets().stream()
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getPresets().stream()
                 .filter(preset -> preset.getName().equals(name))
+                .map(this::convertToHeaderPreset)
                 .findFirst();
     }
 
     public HeaderPreset getActivePreset() {
-        if (proximaProperties.getActivePreset() != null) {
-            Optional<HeaderPreset> preset = getPresetByName(proximaProperties.getActivePreset());
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        if (config.getActivePreset() != null) {
+            Optional<HeaderPreset> preset = getPresetByName(config.getActivePreset());
             if (preset.isPresent()) {
                 return preset.get();
             }
         }
 
-        if (proximaProperties.getPresets() != null && !proximaProperties.getPresets().isEmpty()) {
-            HeaderPreset firstPreset = proximaProperties.getPresets().get(0);
+        if (!config.getPresets().isEmpty()) {
+            ProximaConfig.ConfigHeaderPreset firstPreset = config.getPresets().get(0);
             logger.info("No active preset configured, using first preset: {}", firstPreset.getName());
-            return firstPreset;
+            return convertToHeaderPreset(firstPreset);
         }
 
         return null;
@@ -66,24 +73,56 @@ public class ConfigurationService {
     }
 
     public boolean setActivePreset(String presetName) {
-        Optional<HeaderPreset> preset = getPresetByName(presetName);
-        if (preset.isPresent()) {
-            proximaProperties.setActivePreset(presetName);
-            logger.info("Active preset changed to: {}", presetName);
-            return true;
-        }
+        try {
+            ProximaConfig config = jsonConfigurationService.loadConfiguration();
+            Optional<ProximaConfig.ConfigHeaderPreset> preset = config.getPresets().stream()
+                    .filter(p -> p.getName().equals(presetName))
+                    .findFirst();
 
-        logger.warn("Attempted to set non-existent preset as active: {}", presetName);
-        return false;
+            if (preset.isPresent()) {
+                config.setActivePreset(presetName);
+                jsonConfigurationService.saveConfiguration(config);
+                logger.info("Active preset changed to: {}", presetName);
+                return true;
+            }
+
+            logger.warn("Attempted to set non-existent preset as active: {}", presetName);
+            return false;
+        } catch (Exception e) {
+            logger.error("Error setting active preset: {}", e.getMessage());
+            return false;
+        }
     }
 
     public String getActivePresetName() {
-        HeaderPreset activePreset = getActivePreset();
-        return activePreset != null ? activePreset.getName() : null;
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getActivePreset();
     }
 
     public String getDownstreamUrl() {
-        return proximaProperties.getDownstream().getUrl();
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        return config.getDownstream().getUrl();
+    }
+
+    private HeaderPreset convertToHeaderPreset(ProximaConfig.ConfigHeaderPreset configPreset) {
+        HeaderPreset preset = new HeaderPreset();
+        preset.setName(configPreset.getName());
+        preset.setDisplayName(configPreset.getDisplayName());
+        preset.setHeaders(configPreset.getHeaders());
+        return preset;
+    }
+
+    public Map<String, String> getActiveHeaderMappings() {
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+        if (config.getActivePreset() != null) {
+            Optional<ProximaConfig.ConfigHeaderPreset> preset = config.getPresets().stream()
+                    .filter(p -> p.getName().equals(config.getActivePreset()))
+                    .findFirst();
+            if (preset.isPresent()) {
+                return preset.get().getHeaderMappings();
+            }
+        }
+        return new java.util.HashMap<>();
     }
 
     public List<String> validateConfiguration() {

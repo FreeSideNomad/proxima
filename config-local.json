@@ -1,0 +1,57 @@
+{
+  "downstream" : {
+    "url" : "http://localhost:8081"
+  },
+  "presets" : [ {
+    "name" : "admin_user",
+    "headers" : {
+      "Authorization" : "Bearer admin-jwt-token",
+      "X-User-Role" : "admin",
+      "X-User-ID" : "admin-001",
+      "X-Forwarded-By" : "Proxima-Proxy"
+    },
+    "displayName" : "Admin User",
+    "headerMappings" : {
+      "Authorization" : "Source-Authorization",
+      "User-Agent" : "Source-User-Agent"
+    }
+  }, {
+    "name" : "regular_user",
+    "headers" : {
+      "Authorization" : "Bearer user-jwt-token",
+      "X-User-Role" : "user",
+      "X-User-ID" : "user-001",
+      "X-Forwarded-By" : "Proxima-Proxy"
+    },
+    "displayName" : "Regular User",
+    "headerMappings" : {
+      "Authorization" : "Original-Auth"
+    }
+  }, {
+    "name" : "api_client",
+    "headers" : {
+      "Authorization" : "Bearer api-client-token",
+      "X-Client-Type" : "api",
+      "X-Rate-Limit" : "1000",
+      "X-Forwarded-By" : "Proxima-Proxy"
+    },
+    "displayName" : "API Client",
+    "headerMappings" : { }
+  } ],
+  "routes" : [
+    {
+      "pathPattern": "/api/users",
+      "targetUrl": "http://localhost:8081/rerouted-to-users",
+      "description": "User management service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/api/companies",
+      "targetUrl": "http://localhost:8081/rerouted-to-companies",
+      "description": "Company management service",
+      "enabled": true
+    }
+  ],
+  "activePreset" : "admin_user",
+  "reservedRoutes" : [ "/proxima/**", "/actuator/**" ]
+}

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title != null ? title + ' - Proxima' : 'Proxima - JWT Reverse Proxy'}">Proxima</title>
-    <link rel="stylesheet" th:href="@{/css/lcars.css}">
+    <link rel="stylesheet" th:href="@{/proxima/css/lcars.css}">
 </head>
 <body>
     <div class="lcars-container">
@@ -22,24 +22,24 @@
         <main class="lcars-main">
             <!-- Sidebar Navigation -->
             <nav class="lcars-sidebar">
-                <a th:href="@{/ui}" class="lcars-nav-item"
-                   th:classappend="${#httpServletRequest.requestURI == '/ui' or #httpServletRequest.requestURI == '/ui/' ? 'active' : ''}">
+                <a th:href="@{/proxima/ui}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI == '/proxima/ui' or #httpServletRequest.requestURI == '/proxima/ui/') ? 'active' : ''}">
                     Dashboard
                 </a>
-                <a th:href="@{/ui/presets}" class="lcars-nav-item"
-                   th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/ui/presets') ? 'active' : ''}">
+                <a th:href="@{/proxima/ui/presets}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and #strings.startsWith(#httpServletRequest.requestURI, '/proxima/ui/presets') ? 'active' : ''}">
                     Presets
                 </a>
-                <a th:href="@{/ui/headers}" class="lcars-nav-item"
-                   th:classappend="${#httpServletRequest.requestURI == '/ui/headers' ? 'active' : ''}">
+                <a th:href="@{/proxima/ui/headers}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/headers' ? 'active' : ''}">
                     Headers
                 </a>
-                <a th:href="@{/ui/routes}" class="lcars-nav-item"
-                   th:classappend="${#httpServletRequest.requestURI == '/ui/routes' ? 'active' : ''}">
+                <a th:href="@{/proxima/ui/routes}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/routes' ? 'active' : ''}">
                     Routes
                 </a>
-                <a th:href="@{/ui/status}" class="lcars-nav-item"
-                   th:classappend="${#httpServletRequest.requestURI == '/ui/status' ? 'active' : ''}">
+                <a th:href="@{/proxima/ui/status}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/status' ? 'active' : ''}">
                     Status
                 </a>
                 <a th:href="@{/actuator/health}" class="lcars-nav-item" target="_blank">
@@ -53,13 +53,11 @@
                 <div id="alert-container"></div>
 
                 <!-- Page Content -->
-                <div th:fragment="content">
-                    <!-- Content will be inserted here -->
-                </div>
+                <div th:replace="${content}"></div>
             </div>
         </main>
     </div>
 
-    <script th:src="@{/js/lcars.js}"></script>
+    <script th:src="@{/proxima/js/lcars.js}"></script>
 </body>
 </html>

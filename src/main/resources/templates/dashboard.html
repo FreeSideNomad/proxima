@@ -1,9 +1,4 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
-<head>
-    <title>Dashboard</title>
-</head>
-<body>
+<div th:replace="layout :: layout(~{::content})">
     <div th:fragment="content">
         <!-- Dashboard Header -->
         <div class="lcars-panel">
@@ -28,7 +23,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Current Headers -->
         <div class="lcars-panel" th:if="${currentHeaders != null and !currentHeaders.isEmpty()}">
             <div class="lcars-panel-header">
@@ -49,20 +43,19 @@
                 </tbody>
             </table>
         </div>
-
         <!-- Quick Actions -->
         <div class="lcars-panel">
             <div class="lcars-panel-header">
                 Quick Actions
             </div>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <a th:href="@{/ui/presets}" class="lcars-button">
+                <a th:href="@{/proxima/ui/presets}" class="lcars-button">
                     Manage Presets
                 </a>
-                <a th:href="@{/ui/headers}" class="lcars-button info">
+                <a th:href="@{/proxima/ui/headers}" class="lcars-button info">
                     View Headers
                 </a>
-                <a th:href="@{/ui/status}" class="lcars-button">
+                <a th:href="@{/proxima/ui/status}" class="lcars-button">
                     System Status
                 </a>
                 <a href="/proxy/anything" target="_blank" class="lcars-button success">
@@ -70,7 +63,6 @@
                 </a>
             </div>
         </div>
-
         <!-- System Information -->
         <div class="lcars-panel">
             <div class="lcars-panel-header">
@@ -92,12 +84,10 @@
                 </div>
             </div>
         </div>
-
         <!-- Welcome Message -->
         <div class="lcars-alert info" style="margin-top: 20px;">
             <strong>Welcome to Proxima</strong> - Your JWT header injection reverse proxy is ready for configuration.
             Use the navigation panel to manage presets and headers.
         </div>
     </div>
-</body>
-</html>
+</div>

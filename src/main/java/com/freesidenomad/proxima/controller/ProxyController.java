@@ -60,6 +60,9 @@ public class ProxyController {
     private boolean isReservedProximaRoute(String path) {
         return path.startsWith("/proxima/") ||
                path.startsWith("/actuator/") ||
+               path.startsWith("/swagger-ui") ||
+               path.startsWith("/v3/api-docs") ||
+               path.startsWith("/webjars/") ||
                path.equals("/");
     }
 }

@@ -46,6 +46,9 @@
                    th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/status' ? 'active' : ''}">
                     Status
                 </a>
+                <a th:href="@{/proxima/api/docs}" class="lcars-nav-item" target="_blank">
+                    API Docs
+                </a>
                 <a th:href="@{/actuator/health}" class="lcars-nav-item" target="_blank">
                     Health Check
                 </a>

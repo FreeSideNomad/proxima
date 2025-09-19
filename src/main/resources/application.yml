@@ -20,3 +20,13 @@ logging:
   level:
     com.freesidenomad.proxima: DEBUG
     org.springframework.web: INFO
+
+springdoc:
+  api-docs:
+    path: /proxima/api-docs
+  swagger-ui:
+    path: /proxima/api/docs
+    operationsSorter: alpha
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    filter: true

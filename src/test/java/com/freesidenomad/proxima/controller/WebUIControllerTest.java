@@ -3,6 +3,7 @@ package com.freesidenomad.proxima.controller;
 import com.freesidenomad.proxima.model.HeaderPreset;
 import com.freesidenomad.proxima.model.RouteRule;
 import com.freesidenomad.proxima.service.ConfigurationService;
+import com.freesidenomad.proxima.service.JwtService;
 import com.freesidenomad.proxima.service.RouteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class WebUIControllerTest {
 
     @MockBean
     private RouteService routeService;
+
+    @MockBean
+    private JwtService jwtService;
 
     private HeaderPreset adminPreset;
     private RouteRule userRoute;

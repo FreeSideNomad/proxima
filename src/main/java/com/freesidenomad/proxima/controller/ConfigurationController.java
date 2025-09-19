@@ -4,6 +4,9 @@ import com.freesidenomad.proxima.model.HeaderPreset;
 import com.freesidenomad.proxima.model.RouteRule;
 import com.freesidenomad.proxima.service.ConfigurationService;
 import com.freesidenomad.proxima.service.RouteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/proxima/api/config")
+@Tag(name = "Configuration", description = "Proxy configuration and preset management")
 public class ConfigurationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);

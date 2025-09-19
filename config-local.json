@@ -1,6 +1,6 @@
 {
   "downstream" : {
-    "url" : "http://localhost:8081"
+    "url" : "http://localhost:9999"
   },
   "presets" : [ {
     "name" : "admin_user",
@@ -38,20 +38,7 @@
     "displayName" : "API Client",
     "headerMappings" : { }
   } ],
-  "routes" : [
-    {
-      "pathPattern": "/api/users",
-      "targetUrl": "http://localhost:8081/rerouted-to-users",
-      "description": "User management service",
-      "enabled": true
-    },
-    {
-      "pathPattern": "/api/companies",
-      "targetUrl": "http://localhost:8081/rerouted-to-companies",
-      "description": "Company management service",
-      "enabled": true
-    }
-  ],
+  "routes" : [ ],
   "activePreset" : "admin_user",
   "reservedRoutes" : [ "/proxima/**", "/actuator/**" ]
 }

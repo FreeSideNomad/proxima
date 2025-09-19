@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exclude Spring Boot generated code -->
+    <Match>
+        <Class name="~.*Application$"/>
+    </Match>
+
+    <!-- Exclude test configuration -->
+    <Match>
+        <Class name="~.*Test$"/>
+    </Match>
+
+    <!-- Exclude configuration classes -->
+    <Match>
+        <Class name="~.*Config$"/>
+    </Match>
+
+    <!-- Allow hardcoded string literals in logging -->
+    <Match>
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+
+    <!-- Allow static loggers -->
+    <Match>
+        <Bug pattern="MS_SHOULD_BE_FINAL"/>
+        <Field name="logger"/>
+    </Match>
+
+    <!-- Allow hardcoded paths in configuration -->
+    <Match>
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+        <Class name="~.*JsonConfigurationService$"/>
+    </Match>
+</FindBugsFilter>

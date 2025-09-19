@@ -1,6 +1,14 @@
 package com.freesidenomad.proxima.controller;
 
 import com.freesidenomad.proxima.service.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/proxima/api/jwt")
+@Tag(name = "JWT", description = "JWT token generation and cryptographic key management")
 public class JwtController {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtController.class);
@@ -21,6 +30,77 @@ public class JwtController {
     private JwtService jwtService;
 
     @PostMapping("/tokens")
+    @Operation(
+        summary = "Generate JWT Token",
+        description = "Generate a JWT token with custom claims, expiration, and signing algorithm",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Token generation request",
+            required = true,
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = TokenRequest.class),
+                examples = @ExampleObject(
+                    name = "Standard Token",
+                    value = """
+                    {
+                      "subject": "user@example.com",
+                      "algorithm": "HS256",
+                      "keyId": "default",
+                      "expirationSeconds": 3600,
+                      "claims": {
+                        "role": "admin",
+                        "department": "IT",
+                        "permissions": ["read", "write"]
+                      }
+                    }
+                    """
+                )
+            )
+        )
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Token generated successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = Map.class),
+                examples = @ExampleObject(
+                    name = "Generated Token",
+                    value = """
+                    {
+                      "token": "eyJhbGciOiJIUzI1NiJ9...",
+                      "subject": "user@example.com",
+                      "algorithm": "HS256",
+                      "keyId": "default",
+                      "expiresIn": 3600,
+                      "expiresAt": "2023-12-01T12:00:00Z",
+                      "claims": {
+                        "role": "admin",
+                        "department": "IT"
+                      }
+                    }
+                    """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                examples = @ExampleObject(
+                    name = "Error Response",
+                    value = """
+                    {
+                      "status": "error",
+                      "message": "Subject is required"
+                    }
+                    """
+                )
+            )
+        )
+    })
     public ResponseEntity<Map<String, Object>> generateToken(@RequestBody TokenRequest request) {
         try {
             // Validate request
@@ -175,11 +255,21 @@ public class JwtController {
     }
 
     // Request DTOs
+    @Schema(description = "JWT token generation request")
     public static class TokenRequest {
+        @Schema(description = "JWT subject (sub claim)", example = "user@example.com", required = true)
         private String subject;
+
+        @Schema(description = "Custom claims to include in the token", example = "{\"role\": \"admin\", \"department\": \"IT\"}")
         private Map<String, Object> claims;
+
+        @Schema(description = "Token expiration time in seconds", example = "3600", defaultValue = "3600")
         private Long expirationSeconds;
+
+        @Schema(description = "Signing algorithm", example = "HS256", allowableValues = {"HS256", "RS256"}, defaultValue = "HS256")
         private String algorithm;
+
+        @Schema(description = "Key ID for signing", example = "default", defaultValue = "default")
         private String keyId;
 
         // Getters and setters
@@ -199,7 +289,9 @@ public class JwtController {
         public void setKeyId(String keyId) { this.keyId = keyId; }
     }
 
+    @Schema(description = "Cryptographic key generation request")
     public static class KeyRequest {
+        @Schema(description = "Unique identifier for the key", example = "my-custom-key", required = true)
         private String keyId;
 
         public String getKeyId() { return keyId; }

@@ -56,8 +56,8 @@ class ProxyControllerIntegrationTest {
 
         RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
         assertEquals("/test/endpoint", recordedRequest.getPath());
-        assertEquals("Bearer test-jwt-token", recordedRequest.getHeader("Authorization"));
-        assertEquals("test-user", recordedRequest.getHeader("X-User-Role"));
+        assertEquals("Bearer user-jwt-token", recordedRequest.getHeader("Authorization"));
+        assertEquals("user", recordedRequest.getHeader("X-User-Role"));
     }
 
     @Test
@@ -79,8 +79,8 @@ class ProxyControllerIntegrationTest {
 
         RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
         assertEquals("/test/create", recordedRequest.getPath());
-        assertEquals("Bearer test-jwt-token", recordedRequest.getHeader("Authorization"));
-        assertEquals("test-user", recordedRequest.getHeader("X-User-Role"));
+        assertEquals("Bearer user-jwt-token", recordedRequest.getHeader("Authorization"));
+        assertEquals("user", recordedRequest.getHeader("X-User-Role"));
         assertEquals("{\"name\":\"test\"}", recordedRequest.getBody().readUtf8());
     }
 }

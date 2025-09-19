@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,7 +116,7 @@ public class JwtController {
             Duration expiration = request.getExpirationSeconds() != null ?
                 Duration.ofSeconds(request.getExpirationSeconds()) : Duration.ofHours(1);
 
-            Map<String, Object> claims = request.getClaims() != null ? request.getClaims() : new HashMap<>();
+            Map<String, Object> claims = request.getClaims();
 
             Map<String, Object> response = jwtService.generateTokenResponse(
                 request.getSubject(),
@@ -258,11 +260,13 @@ public class JwtController {
     // Request DTOs
     @Schema(description = "JWT token generation request")
     @Data
+    @EqualsAndHashCode(exclude = "claims")
     public static class TokenRequest {
         @Schema(description = "JWT subject (sub claim)", example = "user@example.com", required = true)
         private String subject;
 
         @Schema(description = "Custom claims to include in the token", example = "{\"role\": \"admin\", \"department\": \"IT\"}")
+        @NonNull
         private Map<String, Object> claims = new HashMap<>();
 
         @Schema(description = "Token expiration time in seconds", example = "3600", defaultValue = "3600")

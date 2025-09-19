@@ -111,12 +111,10 @@ public class ProxyService {
         });
 
         // Add preset headers (these override any incoming headers with same name)
-        if (currentHeaders != null) {
-            currentHeaders.forEach((key, value) -> {
-                logger.debug("Adding custom header: {} = {}", key, value);
-                headers.set(key, value); // Use set to override any existing headers
-            });
-        }
+        currentHeaders.forEach((key, value) -> {
+            logger.debug("Adding custom header: {} = {}", key, value);
+            headers.set(key, value); // Use set to override any existing headers
+        });
 
         return headers;
     }

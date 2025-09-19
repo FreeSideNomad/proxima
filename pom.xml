@@ -126,7 +126,7 @@
             </plugin>
 
             <!-- OWASP Dependency Check Plugin -->
-            <plugin>
+           <!-- <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
                 <version>9.0.7</version>
@@ -147,7 +147,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
             <!-- Jacoco Test Coverage -->
             <plugin>

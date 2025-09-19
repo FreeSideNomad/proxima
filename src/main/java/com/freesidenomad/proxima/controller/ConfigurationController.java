@@ -83,7 +83,7 @@ public class ConfigurationController {
     @GetMapping("/headers")
     public ResponseEntity<Map<String, String>> getCurrentHeaders() {
         Map<String, String> headers = configurationService.getCurrentHeaders();
-        return ResponseEntity.ok(headers != null ? headers : Map.of());
+        return ResponseEntity.ok(headers);
     }
 
     @GetMapping("/info")

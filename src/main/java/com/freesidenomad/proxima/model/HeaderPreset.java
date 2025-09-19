@@ -1,16 +1,20 @@
 package com.freesidenomad.proxima.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(exclude = "headers")
 public class HeaderPreset {
     private String name;
     private String displayName;
+    @NonNull
     private Map<String, String> headers = new HashMap<>();
     private boolean active;
 

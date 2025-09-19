@@ -56,15 +56,13 @@ public class ConfigurationValidator {
             errors.add("Preset display name cannot be empty");
         }
 
-        if (preset.getHeaders() != null) {
-            for (String headerName : preset.getHeaders().keySet()) {
-                if (FORBIDDEN_HEADERS.contains(headerName.toLowerCase(java.util.Locale.ENGLISH))) {
-                    errors.add("Header '" + headerName + "' is not allowed in preset '" + preset.getName() + "'");
-                }
+        for (String headerName : preset.getHeaders().keySet()) {
+            if (FORBIDDEN_HEADERS.contains(headerName.toLowerCase(java.util.Locale.ENGLISH))) {
+                errors.add("Header '" + headerName + "' is not allowed in preset '" + preset.getName() + "'");
+            }
 
-                if (!isValidHeaderName(headerName)) {
-                    errors.add("Invalid header name '" + headerName + "' in preset '" + preset.getName() + "'");
-                }
+            if (!isValidHeaderName(headerName)) {
+                errors.add("Invalid header name '" + headerName + "' in preset '" + preset.getName() + "'");
             }
         }
 

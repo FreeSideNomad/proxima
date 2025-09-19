@@ -1,6 +1,6 @@
 # Proxima - JWT Header Injection Reverse Proxy
 
-**Stage 3**: Web UI with LCARS theme + Route Configuration
+**Stage 4**: JWT Token Generation Utility with Key Management ✅
 
 ## Features
 
@@ -21,6 +21,11 @@
 - ✅ **Reserved route protection** (prevents conflicts with admin/API routes)
 - ✅ **Nginx downstream integration** for request inspection
 - ✅ **Comprehensive testing** (unit, integration, UI)
+- ✅ **JWT Token Generation** with HMAC (HS256) and RSA (RS256) algorithms
+- ✅ **Cryptographic Key Management** with creation, deletion, and public key export
+- ✅ **JWT Web Interface** with token generation, key management, and copy functionality
+- ✅ **JWKS Discovery Endpoint** for public key distribution
+- ✅ **Advanced JWT Features** with custom claims, expiration control, and key rotation
 
 ## Quick Start
 
@@ -248,6 +253,7 @@ Access the Star Trek LCARS-themed web interface at `http://localhost:8080/ui`:
 - **Presets** - Manage and switch header presets
 - **Headers** - View current header configuration
 - **Routes** - Configure path-based routing
+- **JWT Tokens** - Generate tokens and manage cryptographic keys
 - **Status** - System health and diagnostics
 
 ### Route Testing
@@ -271,6 +277,15 @@ The web interface includes built-in route testing:
 ### Preset Management
 - `POST /proxima/api/config/presets` - Add new preset
 - `DELETE /proxima/api/config/presets/{index}` - Delete preset by index
+
+### JWT Management
+- `POST /proxima/api/jwt/tokens` - Generate JWT tokens with custom claims
+- `POST /proxima/api/jwt/keys/hmac` - Generate HMAC symmetric keys (HS256)
+- `POST /proxima/api/jwt/keys/rsa` - Generate RSA key pairs (RS256)
+- `GET /proxima/api/jwt/keys` - List all cryptographic keys
+- `GET /proxima/api/jwt/keys/{keyId}/public` - Export RSA public key
+- `DELETE /proxima/api/jwt/keys/{keyId}` - Delete cryptographic key
+- `GET /proxima/api/jwt/.well-known/jwks.json` - JWKS discovery endpoint
 
 ### Legacy Endpoints (for backward compatibility)
 - `GET /proxima/api/config/presets` - List all header presets
@@ -305,7 +320,10 @@ INFO  - PROXY SUCCESS: GET /api/users/123 from 127.0.0.1 -> http://users-service
 INFO  - BLOCKED: GET /proxima/api/config from 127.0.0.1 - Reserved route
 ```
 
-## Next Stages
+## Development Roadmap
 
-- **Stage 4**: JWT token generation utility with key management
-- **Stage 5**: Advanced features (key rotation, metrics, authentication)
+- ✅ **Stage 1**: Basic reverse proxy with static header injection
+- ✅ **Stage 2**: Configuration file support with multiple header presets
+- ✅ **Stage 3**: Web UI with LCARS theme + Route Configuration
+- ✅ **Stage 4**: JWT token generation utility with key management
+- 🔄 **Stage 5**: Advanced features (key rotation, metrics, authentication)

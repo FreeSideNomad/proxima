@@ -38,6 +38,10 @@
                    th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/routes' ? 'active' : ''}">
                     Routes
                 </a>
+                <a th:href="@{/proxima/ui/jwt}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/jwt' ? 'active' : ''}">
+                    JWT Tokens
+                </a>
                 <a th:href="@{/proxima/ui/status}" class="lcars-nav-item"
                    th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/status' ? 'active' : ''}">
                     Status

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>JWT Token Management</title>
+</head>
+<body>
+<div th:replace="layout :: layout(~{::content})">
+    <div th:fragment="content">
+        <!-- JWT Management Header -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                JWT Token Management System
+            </div>
+            <p style="margin-bottom: 20px;">
+                Generate and manage JWT tokens with custom claims and key management.
+                Support for both HMAC (HS256) and RSA (RS256) signing algorithms.
+            </p>
+        </div>
+
+        <!-- Key Information Panel -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Cryptographic Keys Status
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div class="lcars-card">
+                    <div class="lcars-card-title">HMAC Keys</div>
+                    <div style="font-size: 2rem; color: var(--lcars-orange);" th:text="${keyInfo.hmacKeys.size()}">0</div>
+                    <div style="color: var(--lcars-light-gray);">HS256 Symmetric</div>
+                </div>
+                <div class="lcars-card">
+                    <div class="lcars-card-title">RSA Keys</div>
+                    <div style="font-size: 2rem; color: var(--lcars-blue);" th:text="${keyInfo.rsaKeys.size()}">0</div>
+                    <div style="color: var(--lcars-light-gray);">RS256 Asymmetric</div>
+                </div>
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Total Keys</div>
+                    <div style="font-size: 2rem; color: var(--lcars-green);" th:text="${keyInfo.totalKeys}">0</div>
+                    <div style="color: var(--lcars-light-gray);">All Algorithms</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Generation Panel -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                JWT Token Generator
+            </div>
+            <form id="token-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="subject">Subject (sub)</label>
+                    <input type="text" id="subject" name="subject" class="lcars-input" placeholder="user@example.com" required>
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="algorithm">Algorithm</label>
+                    <select id="algorithm" name="algorithm" class="lcars-select">
+                        <option value="HS256">HS256 (HMAC)</option>
+                        <option value="RS256">RS256 (RSA)</option>
+                    </select>
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="keyId">Key ID</label>
+                    <input type="text" id="keyId" name="keyId" class="lcars-input" placeholder="default" value="default">
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="expiration">Expiration (seconds)</label>
+                    <input type="number" id="expiration" name="expiration" class="lcars-input" placeholder="3600" value="3600">
+                </div>
+
+                <div class="lcars-form-group" style="grid-column: 1 / -1;">
+                    <label class="lcars-label" for="claims">Custom Claims (JSON)</label>
+                    <textarea id="claims" name="claims" class="lcars-input" rows="4"
+                              placeholder='{"role": "admin", "permissions": ["read", "write"]}'></textarea>
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <button type="submit" class="lcars-button">
+                        Generate JWT Token
+                    </button>
+                    <button type="button" class="lcars-button info" onclick="clearTokenForm()">
+                        Clear Form
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Generated Token Display -->
+        <div id="token-result" class="lcars-panel" style="display: none;">
+            <div class="lcars-panel-header">
+                Generated JWT Token
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label class="lcars-label">Token:</label>
+                <textarea id="generated-token" class="lcars-input" rows="6" readonly></textarea>
+                <button class="lcars-button" onclick="copyToken()" style="margin-top: 10px;">
+                    Copy Token
+                </button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <label class="lcars-label">Subject:</label>
+                    <div id="token-subject" style="color: var(--lcars-white);"></div>
+                </div>
+                <div>
+                    <label class="lcars-label">Algorithm:</label>
+                    <div id="token-algorithm" style="color: var(--lcars-white);"></div>
+                </div>
+                <div>
+                    <label class="lcars-label">Expires In:</label>
+                    <div id="token-expires" style="color: var(--lcars-white);"></div>
+                </div>
+                <div>
+                    <label class="lcars-label">Key ID:</label>
+                    <div id="token-key-id" style="color: var(--lcars-white);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Management Panel -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Key Management
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- HMAC Key Generation -->
+                <div>
+                    <h4 style="color: var(--lcars-orange); margin-bottom: 15px;">Generate HMAC Key</h4>
+                    <form id="hmac-key-form">
+                        <div class="lcars-form-group">
+                            <label class="lcars-label" for="hmac-key-id">Key ID</label>
+                            <input type="text" id="hmac-key-id" name="keyId" class="lcars-input" placeholder="my-hmac-key" required>
+                        </div>
+                        <button type="submit" class="lcars-button">
+                            Generate HMAC Key
+                        </button>
+                    </form>
+                </div>
+
+                <!-- RSA Key Generation -->
+                <div>
+                    <h4 style="color: var(--lcars-blue); margin-bottom: 15px;">Generate RSA Key Pair</h4>
+                    <form id="rsa-key-form">
+                        <div class="lcars-form-group">
+                            <label class="lcars-label" for="rsa-key-id">Key ID</label>
+                            <input type="text" id="rsa-key-id" name="keyId" class="lcars-input" placeholder="my-rsa-key" required>
+                        </div>
+                        <button type="submit" class="lcars-button">
+                            Generate RSA Key Pair
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Keys Display -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Available Keys
+            </div>
+            <div id="keys-list">
+                <div th:if="${keyInfo.hmacKeys != null and !keyInfo.hmacKeys.isEmpty()}">
+                    <h4 style="color: var(--lcars-orange); margin: 15px 0;">HMAC Keys (HS256)</h4>
+                    <div th:each="keyId : ${keyInfo.hmacKeys}" class="lcars-card" style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div class="lcars-card-title" th:text="${keyId}">key-id</div>
+                                <div style="color: var(--lcars-light-gray); font-size: 0.9rem;">HMAC-SHA256 Symmetric Key</div>
+                            </div>
+                            <div>
+                                <button class="lcars-button danger" th:onclick="'deleteKey(\'' + ${keyId} + '\')'">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${keyInfo.rsaKeys != null and !keyInfo.rsaKeys.isEmpty()}">
+                    <h4 style="color: var(--lcars-blue); margin: 15px 0;">RSA Keys (RS256)</h4>
+                    <div th:each="keyId : ${keyInfo.rsaKeys}" class="lcars-card" style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div class="lcars-card-title" th:text="${keyId}">key-id</div>
+                                <div style="color: var(--lcars-light-gray); font-size: 0.9rem;">RSA-SHA256 Asymmetric Key Pair</div>
+                            </div>
+                            <div>
+                                <button class="lcars-button info" th:onclick="'getPublicKey(\'' + ${keyId} + '\')'">
+                                    Public Key
+                                </button>
+                                <button class="lcars-button danger" th:onclick="'deleteKey(\'' + ${keyId} + '\')'">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${keyInfo.totalKeys == 0}" style="text-align: center; padding: 40px;">
+                    <div style="color: var(--lcars-light-gray);">No keys configured. Generate your first key above.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Container for notifications -->
+        <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    </div>
+</div>
+
+<script>
+// JWT Token Generation Form Handler
+document.getElementById('token-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const claims = formData.get('claims');
+
+    let parsedClaims = {};
+    if (claims && claims.trim()) {
+        try {
+            parsedClaims = JSON.parse(claims);
+        } catch (error) {
+            showAlert('Invalid JSON in claims field', 'error');
+            return;
+        }
+    }
+
+    const request = {
+        subject: formData.get('subject'),
+        algorithm: formData.get('algorithm'),
+        keyId: formData.get('keyId') || 'default',
+        expirationSeconds: parseInt(formData.get('expiration')) || 3600,
+        claims: parsedClaims
+    };
+
+    try {
+        const response = await fetch('/proxima/api/jwt/tokens', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request)
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'error') {
+            showAlert(result.message, 'error');
+        } else {
+            displayGeneratedToken(result);
+            showAlert('JWT token generated successfully', 'success');
+        }
+    } catch (error) {
+        showAlert('Error generating token: ' + error.message, 'error');
+    }
+});
+
+// Display generated token
+function displayGeneratedToken(tokenData) {
+    document.getElementById('generated-token').value = tokenData.token;
+    document.getElementById('token-subject').textContent = tokenData.subject;
+    document.getElementById('token-algorithm').textContent = tokenData.algorithm;
+    document.getElementById('token-expires').textContent = tokenData.expiresIn + ' seconds';
+    document.getElementById('token-key-id').textContent = tokenData.keyId;
+    document.getElementById('token-result').style.display = 'block';
+}
+
+// Copy token to clipboard
+function copyToken() {
+    const tokenField = document.getElementById('generated-token');
+    tokenField.select();
+    document.execCommand('copy');
+    showAlert('Token copied to clipboard', 'success');
+}
+
+// Clear token form
+function clearTokenForm() {
+    document.getElementById('token-form').reset();
+    document.getElementById('token-result').style.display = 'none';
+}
+
+// HMAC Key Generation
+document.getElementById('hmac-key-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const request = { keyId: formData.get('keyId') };
+
+    try {
+        const response = await fetch('/proxima/api/jwt/keys/hmac', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request)
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'error') {
+            showAlert(result.message, 'error');
+        } else {
+            showAlert(`HMAC key "${result.keyId}" generated successfully`, 'success');
+            setTimeout(() => window.location.reload(), 2000);
+        }
+    } catch (error) {
+        showAlert('Error generating HMAC key: ' + error.message, 'error');
+    }
+});
+
+// RSA Key Generation
+document.getElementById('rsa-key-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const request = { keyId: formData.get('keyId') };
+
+    try {
+        const response = await fetch('/proxima/api/jwt/keys/rsa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request)
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'error') {
+            showAlert(result.message, 'error');
+        } else {
+            showAlert(`RSA key pair "${result.keyId}" generated successfully`, 'success');
+            setTimeout(() => window.location.reload(), 2000);
+        }
+    } catch (error) {
+        showAlert('Error generating RSA key pair: ' + error.message, 'error');
+    }
+});
+
+// Delete key
+async function deleteKey(keyId) {
+    if (!confirm(`Are you sure you want to delete key "${keyId}"?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/proxima/api/jwt/keys/${keyId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'error') {
+            showAlert(result.message, 'error');
+        } else {
+            showAlert(`Key "${keyId}" deleted successfully`, 'success');
+            setTimeout(() => window.location.reload(), 2000);
+        }
+    } catch (error) {
+        showAlert('Error deleting key: ' + error.message, 'error');
+    }
+}
+
+// Get public key
+async function getPublicKey(keyId) {
+    try {
+        const response = await fetch(`/proxima/api/jwt/keys/${keyId}/public`);
+        const result = await response.json();
+
+        if (result.status === 'error') {
+            showAlert(result.message, 'error');
+        } else {
+            // Display public key in a modal or popup
+            const publicKeyWindow = window.open('', '_blank', 'width=600,height=400');
+            publicKeyWindow.document.write(`
+                <html>
+                <head><title>Public Key: ${keyId}</title></head>
+                <body style="font-family: monospace; padding: 20px;">
+                    <h3>Public Key: ${keyId}</h3>
+                    <textarea rows="15" cols="70" readonly>${result.publicKey}</textarea>
+                    <br><br>
+                    <button onclick="window.close()">Close</button>
+                </body>
+                </html>
+            `);
+        }
+    } catch (error) {
+        showAlert('Error retrieving public key: ' + error.message, 'error');
+    }
+}
+
+// Alert function (assumes this exists from the main lcars.js)
+function showAlert(message, type) {
+    const alertContainer = document.getElementById('alert-container');
+    if (!alertContainer) return;
+
+    const alert = document.createElement('div');
+    alert.className = `lcars-alert ${type}`;
+    alert.textContent = message;
+
+    alertContainer.appendChild(alert);
+
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 5000);
+}
+</script>
+</body>
+</html>

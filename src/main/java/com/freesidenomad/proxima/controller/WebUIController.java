@@ -2,6 +2,7 @@ package com.freesidenomad.proxima.controller;
 
 import com.freesidenomad.proxima.service.ConfigurationService;
 import com.freesidenomad.proxima.service.RouteService;
+import com.freesidenomad.proxima.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,9 @@ public class WebUIController {
 
     @Autowired
     private RouteService routeService;
+
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping({"", "/"})
     public String dashboard(Model model) {
@@ -70,5 +74,11 @@ public class WebUIController {
         model.addAttribute("routeCount", routeService.getRouteCount());
         model.addAttribute("enabledRouteCount", routeService.getEnabledRouteCount());
         return "routes";
+    }
+
+    @GetMapping("/jwt")
+    public String jwt(Model model) {
+        model.addAttribute("keyInfo", jwtService.getKeyInfo());
+        return "jwt";
     }
 }

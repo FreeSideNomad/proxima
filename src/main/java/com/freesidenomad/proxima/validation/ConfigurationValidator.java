@@ -58,7 +58,7 @@ public class ConfigurationValidator {
 
         if (preset.getHeaders() != null) {
             for (String headerName : preset.getHeaders().keySet()) {
-                if (FORBIDDEN_HEADERS.contains(headerName.toLowerCase())) {
+                if (FORBIDDEN_HEADERS.contains(headerName.toLowerCase(java.util.Locale.ENGLISH))) {
                     errors.add("Header '" + headerName + "' is not allowed in preset '" + preset.getName() + "'");
                 }
 

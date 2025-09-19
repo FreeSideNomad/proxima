@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class JsonConfigurationService {
                 lastModified = currentModified;
                 logger.info("Configuration loaded from {}", configFilePath);
             }
-            return cachedConfig;
+            return copyConfig(cachedConfig);
         } catch (IOException e) {
             logger.error("Error loading configuration from {}: {}", configFilePath, e.getMessage());
             return createDefaultConfig();
@@ -106,7 +107,7 @@ public class JsonConfigurationService {
                     return true;
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException | SecurityException e) {
             // Ignore errors - this check is best effort
         }
 
@@ -117,7 +118,7 @@ public class JsonConfigurationService {
         String configFilePath = determineConfigFile();
         objectMapper.writerWithDefaultPrettyPrinter()
                    .writeValue(new File(configFilePath), config);
-        cachedConfig = config;
+        cachedConfig = copyConfig(config);
         lastModified = new File(configFilePath).lastModified();
         logger.info("Configuration saved to {}", configFilePath);
     }
@@ -145,5 +146,16 @@ public class JsonConfigurationService {
             "/presets/**", "/routes/**", "/status/**"
         ));
         return config;
+    }
+
+    private ProximaConfig copyConfig(ProximaConfig original) {
+        if (original == null) return null;
+        try {
+            String json = objectMapper.writeValueAsString(original);
+            return objectMapper.readValue(json, ProximaConfig.class);
+        } catch (IOException e) {
+            logger.warn("Failed to create defensive copy of configuration, returning original", e);
+            return original;
+        }
     }
 }

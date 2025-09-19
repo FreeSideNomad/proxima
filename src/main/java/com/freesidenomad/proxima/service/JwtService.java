@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,26 +31,26 @@ public class JwtService {
     private KeyPair defaultRsaKey;
 
     public JwtService() {
-        initializeDefaultKeys();
+        try {
+            initializeDefaultKeys();
+        } catch (Exception e) {
+            // Re-throw as unchecked to fail fast during Spring initialization
+            throw new IllegalStateException("Failed to initialize JWT service", e);
+        }
     }
 
-    private void initializeDefaultKeys() {
-        try {
-            // Generate default HMAC key (HS256)
-            defaultHmacKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-            hmacKeys.put("default", defaultHmacKey);
+    private void initializeDefaultKeys() throws NoSuchAlgorithmException {
+        // Generate default HMAC key (HS256)
+        defaultHmacKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        hmacKeys.put("default", defaultHmacKey);
 
-            // Generate default RSA key pair (RS256)
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            defaultRsaKey = keyPairGenerator.generateKeyPair();
-            rsaKeys.put("default", defaultRsaKey);
+        // Generate default RSA key pair (RS256)
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(2048);
+        defaultRsaKey = keyPairGenerator.generateKeyPair();
+        rsaKeys.put("default", defaultRsaKey);
 
-            logger.info("JWT Service initialized with default HMAC and RSA keys");
-        } catch (NoSuchAlgorithmException e) {
-            logger.error("Failed to initialize JWT keys", e);
-            throw new RuntimeException("Failed to initialize JWT service", e);
-        }
+        logger.info("JWT Service initialized with default HMAC and RSA keys");
     }
 
     public String generateToken(String subject, Map<String, Object> claims, Duration expiration, String algorithm) {
@@ -66,7 +67,7 @@ public class JwtService {
                 .setExpiration(expirationDate)
                 .claims(claims);
 
-        switch (algorithm.toUpperCase()) {
+        switch (algorithm.toUpperCase(Locale.ENGLISH)) {
             case "HS256":
                 SecretKey hmacKey = hmacKeys.get(keyId);
                 if (hmacKey == null) {
@@ -167,8 +168,13 @@ public class JwtService {
         }
 
         if ("default".equals(keyId)) {
-            initializeDefaultKeys();
-            logger.info("Regenerated default keys after deletion");
+            try {
+                initializeDefaultKeys();
+                logger.info("Regenerated default keys after deletion");
+            } catch (NoSuchAlgorithmException e) {
+                logger.error("Failed to regenerate default keys", e);
+                throw new RuntimeException("Failed to regenerate default keys", e);
+            }
         }
     }
 

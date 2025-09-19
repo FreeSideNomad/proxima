@@ -56,13 +56,6 @@ public class RouteService {
                path.equals("/");
     }
 
-    private boolean matchesPattern(String path, String pattern) {
-        if (pattern.endsWith("**")) {
-            String prefix = pattern.substring(0, pattern.length() - 2);
-            return path.startsWith(prefix);
-        }
-        return path.equals(pattern);
-    }
 
     public List<RouteRule> getAllRoutes() {
         ProximaConfig config = jsonConfigurationService.loadConfiguration();

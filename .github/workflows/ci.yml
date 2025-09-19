@@ -38,13 +38,15 @@ jobs:
         name: unit-test-results
         path: target/surefire-reports/
 
-    - name: Publish unit test results
+    - name: Publish integration test results
       uses: dorny/test-reporter@v1
       if: always()
       with:
-        name: Unit Test Results
+        name: Integration Test Results
         path: target/surefire-reports/*.xml
         reporter: java-junit
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
   integration-tests:
     name: Integration Tests

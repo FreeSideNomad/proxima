@@ -1,6 +1,6 @@
 {
   "downstream" : {
-    "url" : "http://localhost:9999"
+    "url" : "http://localhost:8081"
   },
   "presets" : [ {
     "name" : "admin_user",
@@ -38,7 +38,29 @@
     "displayName" : "API Client",
     "headerMappings" : { }
   } ],
-  "routes" : [ ],
+  "routes" : [
+    {
+      "name": "users-api",
+      "pathPattern": "/api/users/**",
+      "targetUrl": "http://localhost:8081",
+      "description": "User management API",
+      "enabled": true
+    },
+    {
+      "name": "auth-api",
+      "pathPattern": "/api/auth/**",
+      "targetUrl": "http://localhost:8081",
+      "description": "Authentication API",
+      "enabled": true
+    },
+    {
+      "name": "data-api",
+      "pathPattern": "/api/data/**",
+      "targetUrl": "http://localhost:8081",
+      "description": "Data management API",
+      "enabled": true
+    }
+  ],
   "activePreset" : "admin_user",
   "reservedRoutes" : [ "/proxima/**", "/actuator/**" ]
 }

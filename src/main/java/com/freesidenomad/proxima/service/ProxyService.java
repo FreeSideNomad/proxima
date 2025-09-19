@@ -62,7 +62,7 @@ public class ProxyService {
         }
 
         return webClient
-                .method(org.springframework.http.HttpMethod.valueOf(method.toUpperCase()))
+                .method(org.springframework.http.HttpMethod.valueOf(method.toUpperCase(java.util.Locale.ENGLISH)))
                 .uri(targetUrl)
                 .headers(httpHeaders -> httpHeaders.putAll(headers))
                 .body(body != null ? BodyInserters.fromValue(body) : BodyInserters.empty())

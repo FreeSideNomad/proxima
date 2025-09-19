@@ -170,7 +170,7 @@
                                 <div style="color: var(--lcars-light-gray); font-size: 0.9rem;">HMAC-SHA256 Symmetric Key</div>
                             </div>
                             <div>
-                                <button class="lcars-button danger" th:onclick="'deleteKey(\'' + ${keyId} + '\')'">
+                                <button class="lcars-button danger" th:data-key-id="${keyId}" onclick="deleteKey(this.dataset.keyId)"
                                     Delete
                                 </button>
                             </div>
@@ -187,10 +187,10 @@
                                 <div style="color: var(--lcars-light-gray); font-size: 0.9rem;">RSA-SHA256 Asymmetric Key Pair</div>
                             </div>
                             <div>
-                                <button class="lcars-button info" th:onclick="'getPublicKey(\'' + ${keyId} + '\')'">
+                                <button class="lcars-button info" th:data-key-id="${keyId}" onclick="getPublicKey(this.dataset.keyId)"
                                     Public Key
                                 </button>
-                                <button class="lcars-button danger" th:onclick="'deleteKey(\'' + ${keyId} + '\')'">
+                                <button class="lcars-button danger" th:data-key-id="${keyId}" onclick="deleteKey(this.dataset.keyId)"
                                     Delete
                                 </button>
                             </div>

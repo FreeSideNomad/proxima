@@ -58,19 +58,19 @@ public class ProximaConfig {
         }
 
         public java.util.Map<String, String> getHeaders() {
-            return headers;
+            return new java.util.HashMap<>(headers);
         }
 
         public void setHeaders(java.util.Map<String, String> headers) {
-            this.headers = headers;
+            this.headers = headers != null ? new java.util.HashMap<>(headers) : new java.util.HashMap<>();
         }
 
         public java.util.Map<String, String> getHeaderMappings() {
-            return headerMappings;
+            return new java.util.HashMap<>(headerMappings);
         }
 
         public void setHeaderMappings(java.util.Map<String, String> headerMappings) {
-            this.headerMappings = headerMappings;
+            this.headerMappings = headerMappings != null ? new java.util.HashMap<>(headerMappings) : new java.util.HashMap<>();
         }
     }
 
@@ -117,7 +117,7 @@ public class ProximaConfig {
         }
 
         public boolean matches(String path) {
-            if (!enabled) return false;
+            if (!enabled || pathPattern == null) return false;
 
             if (pathPattern.endsWith("/**")) {
                 // Match prefix with wildcard (e.g., "/api/users/**" matches "/api/users/123")
@@ -143,6 +143,8 @@ public class ProximaConfig {
         }
 
         public String buildTargetUrl(String originalPath) {
+            if (pathPattern == null) return targetUrl;
+
             if (pathPattern.endsWith("/**")) {
                 // Forward remaining path after prefix
                 String prefix = pathPattern.substring(0, pathPattern.length() - 3);
@@ -185,26 +187,26 @@ public class ProximaConfig {
     }
 
     public List<ConfigHeaderPreset> getPresets() {
-        return presets;
+        return new ArrayList<>(presets);
     }
 
     public void setPresets(List<ConfigHeaderPreset> presets) {
-        this.presets = presets;
+        this.presets = presets != null ? new ArrayList<>(presets) : new ArrayList<>();
     }
 
     public List<ConfigRoute> getRoutes() {
-        return routes;
+        return new ArrayList<>(routes);
     }
 
     public void setRoutes(List<ConfigRoute> routes) {
-        this.routes = routes;
+        this.routes = routes != null ? new ArrayList<>(routes) : new ArrayList<>();
     }
 
     public List<String> getReservedRoutes() {
-        return reservedRoutes;
+        return new ArrayList<>(reservedRoutes);
     }
 
     public void setReservedRoutes(List<String> reservedRoutes) {
-        this.reservedRoutes = reservedRoutes;
+        this.reservedRoutes = reservedRoutes != null ? new ArrayList<>(reservedRoutes) : new ArrayList<>();
     }
 }

@@ -119,7 +119,7 @@
                     }
 
                     try {
-                        const response = await fetch(`/api/config/routes/test/${encodeURIComponent(path)}`);
+                        const response = await fetch(`/proxima/api/config/routes/test/${encodeURIComponent(path)}`);
                         const result = await response.json();
 
                         resultDiv.innerHTML = `

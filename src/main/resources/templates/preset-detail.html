@@ -4,7 +4,7 @@
     <title th:text="'Preset: ' + (${preset != null and preset.displayName != null ? preset.displayName : 'Unknown'})">Preset Details</title>
 </head>
 <body>
-<div th:replace="layout :: layout(~{::content})">
+<div th:replace="~{layout :: layout(~{::content})}">
     <div th:fragment="content">
         <!-- Preset Header -->
         <div class="lcars-panel">
@@ -99,7 +99,7 @@
                         th:data-preset="${preset != null and preset.name != null ? preset.name : ''}">
                     ACTIVATE & TEST
                 </button>
-                <a href="/anything" target="_blank" class="lcars-button success">
+                <a href="/api/users/test" target="_blank" class="lcars-button success">
                     TEST PROXY REQUEST
                 </a>
                 <a href="/proxima/api/config/validate" target="_blank" class="lcars-button info">
@@ -110,7 +110,7 @@
             <!-- Sample curl command -->
             <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px;">
                 <h5 style="color: var(--lcars-orange); margin-bottom: 10px;">Sample Test Command:</h5>
-                <pre style="color: var(--lcars-green); font-family: monospace; margin: 0;">curl -X GET http://localhost:8080/anything</pre>
+                <pre style="color: var(--lcars-green); font-family: monospace; margin: 0;">curl -X GET http://localhost:8080/api/users/test</pre>
                 <p style="margin-top: 10px; font-size: 0.9rem; color: var(--lcars-light-gray);">
                     This will show you the headers being injected by the current preset.
                 </p>

@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>JWT Token Management</title>
-    <meta name="cache-version" content="20250920-001">
+    <meta name="cache-version" content="20250920-002">
 </head>
 <body>
 <div th:replace="~{layout :: layout(~{::content})}">
@@ -153,10 +153,10 @@
                                 <div style="color: var(--lcars-light-gray); font-size: 0.9rem;">RSA-SHA256 Asymmetric Key Pair</div>
                             </div>
                             <div>
-                                <button class="lcars-button info" th:data-key-id="${keyId}" onclick="getPublicKey(this.dataset.keyId)"
+                                <button class="lcars-button info" th:data-key-id="${keyId}" onclick="getPublicKey(this.dataset.keyId)">
                                     Public Key
                                 </button>
-                                <button class="lcars-button danger" th:data-key-id="${keyId}" onclick="deleteKey(this.dataset.keyId)"
+                                <button class="lcars-button danger" th:data-key-id="${keyId}" onclick="deleteKey(this.dataset.keyId)">
                                     Delete
                                 </button>
                             </div>

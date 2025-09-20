@@ -260,9 +260,15 @@ jobs:
     - name: Save Docker image (for backup)
       run: |
         # Extract the SHA-based tag from the metadata output
-        SHA_TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep -E "ghcr\.io/.+:[a-f0-9]{7}" | head -1)
-        docker pull $SHA_TAG
-        docker save $SHA_TAG | gzip > proxima-image.tar.gz
+        SHA_TAG=$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ' ' | grep -oE "ghcr\.io/[^[:space:]]+:[a-f0-9]{7}" | head -1)
+        if [ -n "$SHA_TAG" ]; then
+          docker pull $SHA_TAG
+          docker save $SHA_TAG | gzip > proxima-image.tar.gz
+        else
+          # Fallback to latest tag if SHA tag not found
+          docker pull ghcr.io/${{ github.repository_owner }}/proxima:latest
+          docker save ghcr.io/${{ github.repository_owner }}/proxima:latest | gzip > proxima-image.tar.gz
+        fi
 
     - name: Upload Docker image artifact
       uses: actions/upload-artifact@v4

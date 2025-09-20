@@ -155,9 +155,23 @@
                     </li>
                     <li style="margin: 8px 0; padding-left: 25px; position: relative;">
                         <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">2.</span>
-                        Modify preset configurations in your <code>config-local.json</code> file
+                        Modify preset configurations in your <code>config-local.json</code> file and mount it to the Docker container
                     </li>
                 </ol>
+
+                <div style="margin-top: 15px;">
+                    <h4 style="color: var(--lcars-orange); margin-bottom: 10px;">Docker Configuration Example:</h4>
+                    <pre style="background-color: var(--lcars-black); padding: 10px; border-radius: 5px; color: var(--lcars-green); font-family: monospace; font-size: 0.85rem; overflow-x: auto;">version: '3.8'
+services:
+  proxima:
+    image: proxima:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config-local.json:/app/config-local.json
+    environment:
+      - SPRING_CONFIG_LOCATION=file:/app/config-local.json</pre>
+                </div>
             </div>
 
             <div style="margin-top: 15px;">

@@ -4,7 +4,7 @@
     <title>Route Configuration</title>
 </head>
 <body>
-<div th:replace="layout :: layout(~{::content})">
+<div th:replace="~{layout :: layout(~{::content})}">
     <div th:fragment="content">
         <!-- Routes Header -->
         <div class="lcars-panel">
@@ -145,18 +145,24 @@
                 Configuration Instructions
             </div>
             <p style="margin-bottom: 15px;">
-                To configure routes, update your <code>application.yml</code> file:
+                To configure routes, update your <code>config-local.json</code> file:
             </p>
-            <pre style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; color: var(--lcars-green); font-family: monospace; overflow-x: auto;">proxima:
-  routes:
-    - path-pattern: "/api/users/**"
-      target-url: "http://localhost:8081"
-      description: "User service"
-      enabled: true
-    - path-pattern: "/api/invoices/**"
-      target-url: "http://localhost:8082"
-      description: "Invoice service"
-      enabled: true</pre>
+            <pre style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; color: var(--lcars-green); font-family: monospace; overflow-x: auto;">{
+  "routes": [
+    {
+      "pathPattern": "/api/users/**",
+      "targetUrl": "http://localhost:8081",
+      "description": "User service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/api/invoices/**",
+      "targetUrl": "http://localhost:8082",
+      "description": "Invoice service",
+      "enabled": true
+    }
+  ]
+}</pre>
 
             <div style="margin-top: 20px;">
                 <h4 style="color: var(--lcars-orange); margin-bottom: 10px;">Pattern Matching Rules:</h4>
@@ -177,7 +183,7 @@
             </div>
 
             <div style="margin-top: 15px;">
-                <a href="/api/config/routes" target="_blank" class="lcars-button info">
+                <a href="/proxima/api/config/routes" target="_blank" class="lcars-button info">
                     View JSON API
                 </a>
             </div>

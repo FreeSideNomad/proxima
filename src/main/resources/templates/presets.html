@@ -4,7 +4,7 @@
     <title>Header Presets</title>
 </head>
 <body>
-<div th:replace="layout :: layout(~{::content})">
+<div th:replace="~{layout :: layout(~{::content})}">
     <div th:fragment="content">
         <!-- Presets Header -->
         <div class="lcars-panel">

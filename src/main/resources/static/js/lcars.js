@@ -69,7 +69,13 @@ class ProximaUI {
 
     async loadCurrentConfig() {
         try {
-            const response = await fetch('/proxima/api/config/info');
+            const headers = {};
+            const storedToken = localStorage.getItem('proxyAuthToken');
+            if (storedToken) {
+                headers['Authorization'] = `Bearer ${storedToken}`;
+            }
+
+            const response = await fetch('/proxima/api/config/info', { headers });
             const config = await response.json();
             this.updateConfigDisplay(config);
         } catch (error) {

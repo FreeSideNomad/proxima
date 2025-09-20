@@ -215,7 +215,9 @@ document.getElementById('token-form').addEventListener('submit', async function(
             showAlert(result.message, 'error');
         } else {
             displayGeneratedToken(result);
-            showAlert('JWT token generated successfully', 'success');
+            // Store the token in localStorage for proxy requests
+            localStorage.setItem('proxyAuthToken', result.token);
+            showAlert('JWT token generated and stored for proxy requests', 'success');
         }
     } catch (error) {
         showAlert('Error generating token: ' + error.message, 'error');

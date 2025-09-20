@@ -6,9 +6,9 @@
     "name" : "admin_user",
     "headers" : {
       "Authorization" : "Bearer admin-jwt-token",
-      "X-User-Role" : "admin",
       "X-User-ID" : "admin-001",
-      "X-Forwarded-By" : "Proxima-Proxy"
+      "X-Forwarded-By" : "Proxima-Proxy",
+      "X-User-Role" : "admin"
     },
     "displayName" : "Admin User",
     "headerMappings" : {
@@ -19,9 +19,9 @@
     "name" : "regular_user",
     "headers" : {
       "Authorization" : "Bearer user-jwt-token",
-      "X-User-Role" : "user",
       "X-User-ID" : "user-001",
-      "X-Forwarded-By" : "Proxima-Proxy"
+      "X-Forwarded-By" : "Proxima-Proxy",
+      "X-User-Role" : "user"
     },
     "displayName" : "Regular User",
     "headerMappings" : {
@@ -38,36 +38,31 @@
     "displayName" : "API Client",
     "headerMappings" : { }
   } ],
-  "routes" : [
-    {
-      "pathPattern": "/api/users/**",
-      "targetUrl": "http://localhost:8081",
-      "description": "User management API",
-      "enabled": true,
-      "priority": 100
-    },
-    {
-      "pathPattern": "/api/auth/**",
-      "targetUrl": "http://localhost:8081",
-      "description": "Authentication API",
-      "enabled": true,
-      "priority": 90
-    },
-    {
-      "pathPattern": "/api/data/**",
-      "targetUrl": "http://localhost:8081",
-      "description": "Data management API",
-      "enabled": true,
-      "priority": 80
-    },
-    {
-      "pathPattern": "/api/**",
-      "targetUrl": "http://localhost:8081",
-      "description": "Catch-all API route",
-      "enabled": true,
-      "priority": 10
-    }
-  ],
+  "routes" : [ {
+    "description" : "User management API",
+    "enabled" : true,
+    "priority" : 100,
+    "pathPattern" : "/api/users/**",
+    "targetUrl" : "http://localhost:8081"
+  }, {
+    "description" : "Authentication API",
+    "enabled" : true,
+    "priority" : 90,
+    "pathPattern" : "/api/auth/**",
+    "targetUrl" : "http://localhost:8081"
+  }, {
+    "description" : "Data management API",
+    "enabled" : true,
+    "priority" : 80,
+    "pathPattern" : "/api/data/**",
+    "targetUrl" : "http://localhost:8081"
+  }, {
+    "description" : "Catch-all API route",
+    "enabled" : true,
+    "priority" : 10,
+    "pathPattern" : "/api/**",
+    "targetUrl" : "http://localhost:8081"
+  } ],
   "activePreset" : "admin_user",
   "reservedRoutes" : [ "/proxima/**", "/actuator/**" ]
 }

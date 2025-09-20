@@ -78,10 +78,13 @@ public class ProxyFilter implements Filter {
                 // Copy response status
                 response.setStatus(proxyResponse.getStatusCodeValue());
 
-                // Copy response headers
+                // Copy response headers, but skip transfer-encoding to avoid conflicts with content-length
                 proxyResponse.getHeaders().forEach((name, values) -> {
-                    for (String value : values) {
-                        response.addHeader(name, value);
+                    // Skip transfer-encoding header since we're using content-length from Spring's toEntity conversion
+                    if (!"transfer-encoding".equalsIgnoreCase(name)) {
+                        for (String value : values) {
+                            response.addHeader(name, value);
+                        }
                     }
                 });
 

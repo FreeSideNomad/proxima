@@ -1,15 +1,13 @@
-FROM openjdk:17-jdk-slim
+# Multi-stage build for smaller final image
+FROM maven:3.9-openjdk-17-slim AS builder
 
 LABEL maintainer="FreeSideNomad"
 LABEL description="Proxima - JWT Header Injection Reverse Proxy"
 
-# Install Maven
-RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
-
 # Create app directory
 WORKDIR /app
 
-# Copy maven files
+# Copy maven files first for better layer caching
 COPY pom.xml .
 
 # Download dependencies
@@ -20,6 +18,14 @@ COPY src src
 
 # Build application
 RUN mvn clean package -DskipTests
+
+# Final runtime image
+FROM openjdk:17-jre-slim
+
+WORKDIR /app
+
+# Copy only the built JAR from the builder stage
+COPY --from=builder /app/target/proxima-*.jar app.jar
 
 # Create volume for config
 VOLUME ["/app/config"]
@@ -32,4 +38,4 @@ ENV JAVA_OPTS="-Xmx512m -Xms256m"
 ENV SPRING_PROFILES_ACTIVE=docker
 
 # Run application
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar target/proxima-*.jar --spring.config.additional-location=file:/app/config/"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.config.additional-location=file:/app/config/"]

@@ -8,9 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
@@ -201,8 +203,25 @@ public final class JwtService {
                     jwk.put("kid", entry.getKey());
                     jwk.put("alg", "RS256");
 
-                    // Note: In a real implementation, you'd extract the modulus and exponent
-                    // For this demo, we'll just include the key ID
+                    // Extract RSA public key components for OAuth compliance
+                    RSAPublicKey publicKey = (RSAPublicKey) entry.getValue().getPublic();
+
+                    // Convert modulus (n) to base64url without padding
+                    BigInteger modulus = publicKey.getModulus();
+                    byte[] modulusBytes = modulus.toByteArray();
+                    // Remove leading zero byte if present (two's complement representation)
+                    if (modulusBytes[0] == 0 && modulusBytes.length > 1) {
+                        byte[] temp = new byte[modulusBytes.length - 1];
+                        System.arraycopy(modulusBytes, 1, temp, 0, temp.length);
+                        modulusBytes = temp;
+                    }
+                    jwk.put("n", Base64.getUrlEncoder().withoutPadding().encodeToString(modulusBytes));
+
+                    // Convert exponent (e) to base64url without padding
+                    BigInteger exponent = publicKey.getPublicExponent();
+                    byte[] exponentBytes = exponent.toByteArray();
+                    jwk.put("e", Base64.getUrlEncoder().withoutPadding().encodeToString(exponentBytes));
+
                     return jwk;
                 })
                 .toArray(Map[]::new);

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,6 +70,22 @@ public class RouteService {
         return config.getRoutes().stream()
                 .filter(route -> route.matches(path))
                 .map(this::convertToRouteRule)
+                .findFirst();
+    }
+
+    /**
+     * Find the first matching route for a path, considering priority ordering.
+     * Routes with higher priority values are checked first.
+     * Only enabled routes are considered.
+     */
+    public Optional<ProximaConfig.ConfigRoute> findMatchingRouteWithPriority(String path) {
+        ProximaConfig config = jsonConfigurationService.loadConfiguration();
+
+        // Sort routes by priority (higher priority first) and find first match
+        return config.getRoutes().stream()
+                .filter(ProximaConfig.ConfigRoute::isEnabled)
+                .sorted(Comparator.comparingInt(ProximaConfig.ConfigRoute::getPriority).reversed())
+                .filter(route -> route.matches(path))
                 .findFirst();
     }
 

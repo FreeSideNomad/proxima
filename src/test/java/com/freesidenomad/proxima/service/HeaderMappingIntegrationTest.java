@@ -31,7 +31,7 @@ class HeaderMappingIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         mockWebServer = new MockWebServer();
-        mockWebServer.start(9999);
+        mockWebServer.start(8081);
     }
 
     @AfterEach
@@ -51,19 +51,15 @@ class HeaderMappingIntegrationTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody("{\"status\":\"success\"}"));
 
-        var mvcResult = mockMvc.perform(get("/test/mapping")
+        mockMvc.perform(get("/api/users/123")
                 .header("Authorization", "Bearer incoming-token")
                 .header("User-Agent", "TestAgent/1.0"))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"status\":\"success\"}"));
 
         RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
         assertNotNull(recordedRequest);
-        assertEquals("/test/mapping", recordedRequest.getPath());
+        assertEquals("/123", recordedRequest.getPath());
 
         // Check that the Authorization header from the request was remapped to Original-Auth
         assertEquals("Bearer incoming-token", recordedRequest.getHeader("Original-Auth"));

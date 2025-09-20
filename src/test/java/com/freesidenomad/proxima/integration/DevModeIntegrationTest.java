@@ -18,18 +18,19 @@ class DevModeIntegrationTest {
 
     @Test
     void testDashboardShowsCorrectDownstreamUrl() throws Exception {
-        // Test that the dashboard shows the test configuration URL (localhost:9999)
+        // Test that the dashboard shows the test configuration URL (localhost:8081)
         mockMvc.perform(get("/proxima/ui/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("http://localhost:9999")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("http://localhost:8081")));
     }
 
     @Test
-    void testRoutesPageShowsNoRoutesConfigured() throws Exception {
-        // Test that routes page shows no routes (test config has empty routes array)
+    void testRoutesPageShowsConfiguredRoutes() throws Exception {
+        // Test that routes page shows the configured routes from test config.json
         mockMvc.perform(get("/proxima/ui/routes"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("NO ROUTES CONFIGURED")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/api/users/**")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("http://localhost:8081")));
     }
 
     @Test

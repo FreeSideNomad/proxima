@@ -40,25 +40,32 @@
   } ],
   "routes" : [
     {
-      "name": "users-api",
       "pathPattern": "/api/users/**",
       "targetUrl": "http://localhost:8081",
       "description": "User management API",
-      "enabled": true
+      "enabled": true,
+      "priority": 100
     },
     {
-      "name": "auth-api",
       "pathPattern": "/api/auth/**",
       "targetUrl": "http://localhost:8081",
       "description": "Authentication API",
-      "enabled": true
+      "enabled": true,
+      "priority": 90
     },
     {
-      "name": "data-api",
       "pathPattern": "/api/data/**",
       "targetUrl": "http://localhost:8081",
       "description": "Data management API",
-      "enabled": true
+      "enabled": true,
+      "priority": 80
+    },
+    {
+      "pathPattern": "/api/**",
+      "targetUrl": "http://localhost:8081",
+      "description": "Catch-all API route",
+      "enabled": true,
+      "priority": 10
     }
   ],
   "activePreset" : "admin_user",

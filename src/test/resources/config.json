@@ -1,6 +1,6 @@
 {
   "downstream": {
-    "url": "http://localhost:9999"
+    "url": "http://localhost:8081"
   },
   "activePreset": "regular_user",
   "presets": [
@@ -43,7 +43,15 @@
       "headerMappings": {}
     }
   ],
-  "routes": [],
+  "routes": [
+    {
+      "pathPattern": "/api/users/**",
+      "targetUrl": "http://localhost:8081",
+      "description": "User management API",
+      "enabled": true,
+      "priority": 100
+    }
+  ],
   "reservedRoutes": [
     "/proxima/**",
     "/actuator/**"

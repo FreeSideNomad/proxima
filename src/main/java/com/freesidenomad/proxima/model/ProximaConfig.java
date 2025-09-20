@@ -19,7 +19,7 @@ public class ProximaConfig {
     private List<String> reservedRoutes = new ArrayList<>();
 
     public static class Downstream {
-        private String url = "http://nginx:80";
+        private String url = "http://localhost:8081";
 
         public String getUrl() {
             return url;
@@ -83,6 +83,7 @@ public class ProximaConfig {
 
         private String description;
         private boolean enabled = true;
+        private int priority = 50; // Default priority, higher number = higher priority
 
         public String getPathPattern() {
             return pathPattern;
@@ -116,6 +117,14 @@ public class ProximaConfig {
             this.enabled = enabled;
         }
 
+        public int getPriority() {
+            return priority;
+        }
+
+        public void setPriority(int priority) {
+            this.priority = priority;
+        }
+
         public boolean matches(String path) {
             if (!enabled || pathPattern == null) return false;
 
@@ -128,7 +137,11 @@ public class ProximaConfig {
                 String prefix = pathPattern.substring(0, pathPattern.length() - 2);
                 if (!path.startsWith(prefix)) return false;
                 String remainder = path.substring(prefix.length());
-                return !remainder.contains("/") || remainder.equals("/");
+                // Single wildcard matches if remainder is "/" or "/something" but not "/something/else"
+                if (remainder.equals("/")) return true;
+                if (!remainder.startsWith("/")) return false;
+                String afterSlash = remainder.substring(1);
+                return !afterSlash.contains("/");
             } else if (pathPattern.contains("*")) {
                 // Simple wildcard matching
                 return matchesWildcard(path, pathPattern);

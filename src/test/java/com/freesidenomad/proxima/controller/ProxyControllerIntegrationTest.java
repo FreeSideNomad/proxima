@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,7 +30,7 @@ class ProxyControllerIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         mockWebServer = new MockWebServer();
-        mockWebServer.start(9999);
+        mockWebServer.start(8081);
     }
 
     @AfterEach
@@ -46,16 +45,12 @@ class ProxyControllerIntegrationTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody("{\"status\":\"success\"}"));
 
-        var mvcResult = mockMvc.perform(get("/test/endpoint"))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        mockMvc.perform(asyncDispatch(mvcResult))
+        mockMvc.perform(get("/api/users/123"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"status\":\"success\"}"));
 
         RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
-        assertEquals("/test/endpoint", recordedRequest.getPath());
+        assertEquals("/123", recordedRequest.getPath());
         assertEquals("Bearer user-jwt-token", recordedRequest.getHeader("Authorization"));
         assertEquals("user", recordedRequest.getHeader("X-User-Role"));
     }
@@ -67,18 +62,14 @@ class ProxyControllerIntegrationTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody("{\"id\":123}"));
 
-        var mvcResult = mockMvc.perform(post("/test/create")
+        mockMvc.perform(post("/api/users")
                 .contentType("application/json")
                 .content("{\"name\":\"test\"}"))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isCreated())
                 .andExpect(content().json("{\"id\":123}"));
 
         RecordedRequest recordedRequest = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
-        assertEquals("/test/create", recordedRequest.getPath());
+        assertEquals("/", recordedRequest.getPath());
         assertEquals("Bearer user-jwt-token", recordedRequest.getHeader("Authorization"));
         assertEquals("user", recordedRequest.getHeader("X-User-Role"));
         assertEquals("{\"name\":\"test\"}", recordedRequest.getBody().readUtf8());

@@ -340,23 +340,7 @@ async function getPublicKey(keyId) {
     }
 }
 
-// Alert function (assumes this exists from the main lcars.js)
-function showAlert(message, type) {
-    const alertContainer = document.getElementById('alert-container');
-    if (!alertContainer) return;
-
-    const alert = document.createElement('div');
-    alert.className = `lcars-alert ${type}`;
-    alert.textContent = message;
-
-    alertContainer.appendChild(alert);
-
-    setTimeout(() => {
-        if (alert.parentNode) {
-            alert.parentNode.removeChild(alert);
-        }
-    }, 5000);
-}
+// showAlert function is available from the main lcars.js
 </script>
 </body>
 </html>

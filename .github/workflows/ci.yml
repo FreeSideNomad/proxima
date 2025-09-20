@@ -240,7 +240,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ghcr.io/${{ github.repository_owner }}/proxima
+        images: ghcr.io/${{ github.repository_owner | lower }}/proxima
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -266,8 +266,8 @@ jobs:
           docker save $SHA_TAG | gzip > proxima-image.tar.gz
         else
           # Fallback to latest tag if SHA tag not found
-          docker pull ghcr.io/${{ github.repository_owner }}/proxima:latest
-          docker save ghcr.io/${{ github.repository_owner }}/proxima:latest | gzip > proxima-image.tar.gz
+          docker pull ghcr.io/${{ github.repository_owner | lower }}/proxima:latest
+          docker save ghcr.io/${{ github.repository_owner | lower }}/proxima:latest | gzip > proxima-image.tar.gz
         fi
 
     - name: Upload Docker image artifact

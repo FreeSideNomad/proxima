@@ -91,6 +91,11 @@ class ProximaUI {
                 this.loadCurrentConfig();
                 this.updatePresetButtons(presetName);
                 this.updatePresetStatusIndicators(presetName);
+
+                // Reload the page after a short delay to ensure all UI elements reflect the new state
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
                 this.playLCARSSound('error');
                 this.showAlert(result.message, 'error');
@@ -134,9 +139,9 @@ class ProximaUI {
         });
 
         // Also update buttons that might have changed state
-        const allButtons = document.querySelectorAll('button[th\\:data-preset], button[data-preset]');
+        const allButtons = document.querySelectorAll('button.activate-preset, button[data-preset]');
         allButtons.forEach(button => {
-            const presetName = button.dataset.preset || button.getAttribute('th:data-preset');
+            const presetName = button.dataset.preset;
             if (presetName === activePreset) {
                 button.textContent = 'ACTIVE';
                 button.classList.add('success');

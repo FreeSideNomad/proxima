@@ -1,0 +1,66 @@
+# Example Docker Compose setup for Proxima
+# Copy this file to docker-compose.yml and customize as needed
+
+version: '3.8'
+
+services:
+  # Proxima reverse proxy with JWT header injection
+  proxima:
+    image: ghcr.io/freesidenomad/proxima:latest
+    container_name: proxima
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount your config directory
+      - ./config:/app/config:ro
+    depends_on:
+      - backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    restart: unless-stopped
+    networks:
+      - proxima-net
+
+  # Example backend service (replace with your actual service)
+  backend:
+    image: nginx:alpine
+    container_name: demo-backend
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - proxima-net
+
+  # Example: Add your actual backend services here
+  # your-api:
+  #   image: your-api:latest
+  #   container_name: your-api
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DATABASE_URL=postgresql://user:password@database:5432/app
+  #   networks:
+  #     - proxima-net
+
+  # Example: Database
+  # database:
+  #   image: postgres:15-alpine
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_DB: your_app
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - proxima-net
+
+# volumes:
+#   postgres_data:
+
+networks:
+  proxima-net:
+    driver: bridge

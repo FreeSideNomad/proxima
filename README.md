@@ -2,6 +2,117 @@
 
 **Stage 4**: JWT Token Generation Utility with Key Management ✅
 
+## 🚀 Quick Start with Docker
+
+### Option 1: Simple Setup (Proxima + Your Backend)
+
+```bash
+# Create a config.json file
+mkdir proxima-config
+cat > proxima-config/config.json << 'EOF'
+{
+  "downstream": {
+    "url": "http://your-backend-service:8081"
+  },
+  "activePreset": "default",
+  "presets": [
+    {
+      "name": "default",
+      "displayName": "Default Headers",
+      "headers": {
+        "Authorization": "Bearer your-jwt-token",
+        "X-Forwarded-By": "Proxima-Proxy",
+        "X-User-ID": "user-123"
+      },
+      "headerMappings": {}
+    }
+  ],
+  "routes": [
+    {
+      "pathPattern": "/api/**",
+      "targetUrl": "http://your-backend-service:8081",
+      "description": "API routes",
+      "enabled": true
+    }
+  ],
+  "reservedRoutes": [
+    "/proxima/**",
+    "/actuator/**"
+  ]
+}
+EOF
+
+# Run Proxima
+docker run -d \
+  --name proxima \
+  -p 8080:8080 \
+  -v $(pwd)/proxima-config:/app/config \
+  ghcr.io/freesidenomad/proxima:latest
+```
+
+### Option 2: Complete Demo with Docker Compose
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  proxima:
+    image: ghcr.io/freesidenomad/proxima:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/app/config
+    depends_on:
+      - backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  backend:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+  # Optional: Database or other services
+  # database:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: myapp
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: password
+```
+
+**Sample nginx.conf for demo backend:**
+```nginx
+events { worker_connections 1024; }
+http {
+    server {
+        listen 80;
+        location / {
+            add_header Content-Type application/json;
+            return 200 '{"message": "Hello from backend!", "headers": "$http_authorization", "user_id": "$http_x_user_id"}';
+        }
+    }
+}
+```
+
+### Quick Test
+
+```bash
+# Start the demo
+docker-compose up -d
+
+# Test the proxy (should inject headers and forward to backend)
+curl http://localhost:8080/api/test
+
+# Access the LCARS Web UI
+open http://localhost:8080/proxima/ui
+
+# Generate JWT tokens
+open http://localhost:8080/proxima/ui/jwt
+```
+
 ## Features
 
 - ✅ **Star Trek LCARS-themed Web UI** for configuration management
@@ -27,7 +138,7 @@
 - ✅ **JWKS Discovery Endpoint** for public key distribution
 - ✅ **Advanced JWT Features** with custom claims, expiration control, and key rotation
 
-## Quick Start
+## Development & Local Setup
 
 ### Local Development
 

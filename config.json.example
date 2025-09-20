@@ -1,0 +1,77 @@
+{
+  "downstream": {
+    "url": "http://backend:80"
+  },
+  "activePreset": "default",
+  "presets": [
+    {
+      "name": "default",
+      "displayName": "Default Headers",
+      "headers": {
+        "Authorization": "Bearer your-jwt-token-here",
+        "X-Forwarded-By": "Proxima-Proxy",
+        "X-User-ID": "user-123",
+        "X-User-Role": "user"
+      },
+      "headerMappings": {
+        "Authorization": "Original-Authorization"
+      }
+    },
+    {
+      "name": "admin",
+      "displayName": "Admin User",
+      "headers": {
+        "Authorization": "Bearer admin-jwt-token",
+        "X-User-Role": "admin",
+        "X-User-ID": "admin-001",
+        "X-Forwarded-By": "Proxima-Proxy",
+        "X-Admin-Level": "super"
+      },
+      "headerMappings": {
+        "Authorization": "Source-Authorization",
+        "User-Agent": "Source-User-Agent"
+      }
+    },
+    {
+      "name": "api_client",
+      "displayName": "API Client",
+      "headers": {
+        "Authorization": "Bearer api-client-token",
+        "X-Client-Type": "api",
+        "X-Rate-Limit": "1000",
+        "X-Forwarded-By": "Proxima-Proxy"
+      },
+      "headerMappings": {}
+    }
+  ],
+  "routes": [
+    {
+      "pathPattern": "/api/**",
+      "targetUrl": "http://backend:80",
+      "description": "Main API routes",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/v1/**",
+      "targetUrl": "http://backend:80",
+      "description": "Version 1 API",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/auth/**",
+      "targetUrl": "http://backend:80",
+      "description": "Authentication service",
+      "enabled": true
+    },
+    {
+      "pathPattern": "/admin/**",
+      "targetUrl": "http://backend:80",
+      "description": "Admin endpoints",
+      "enabled": true
+    }
+  ],
+  "reservedRoutes": [
+    "/proxima/**",
+    "/actuator/**"
+  ]
+}

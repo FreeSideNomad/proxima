@@ -1,0 +1,86 @@
+# Example nginx.conf for demo backend
+# This creates a simple backend that shows received headers
+# Copy this to nginx.conf when using the Docker Compose example
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    # Basic setup
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    # Logging
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    server {
+        listen 80;
+        server_name localhost;
+
+        # Default location - shows injected headers
+        location / {
+            add_header Content-Type application/json;
+            add_header Access-Control-Allow-Origin *;
+
+            # Return JSON with received headers
+            return 200 '{
+  "message": "Hello from demo backend!",
+  "timestamp": "$time_iso8601",
+  "received_headers": {
+    "authorization": "$http_authorization",
+    "x_user_id": "$http_x_user_id",
+    "x_user_role": "$http_x_user_role",
+    "x_forwarded_by": "$http_x_forwarded_by",
+    "user_agent": "$http_user_agent",
+    "host": "$http_host"
+  },
+  "request_info": {
+    "method": "$request_method",
+    "uri": "$request_uri",
+    "remote_addr": "$remote_addr"
+  }
+}';
+        }
+
+        # API endpoints
+        location /api/ {
+            add_header Content-Type application/json;
+            add_header Access-Control-Allow-Origin *;
+
+            return 200 '{
+  "service": "api",
+  "endpoint": "$uri",
+  "method": "$request_method",
+  "headers": {
+    "authorization": "$http_authorization",
+    "x_user_id": "$http_x_user_id",
+    "x_user_role": "$http_x_user_role"
+  },
+  "message": "This is your API response with injected headers"
+}';
+        }
+
+        # Health check
+        location /health {
+            add_header Content-Type application/json;
+            return 200 '{"status": "healthy", "service": "demo-backend"}';
+        }
+
+        # Handle CORS preflight
+        location ~ ^/.* {
+            if ($request_method = OPTIONS) {
+                add_header Access-Control-Allow-Origin *;
+                add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+                add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-User-ID, X-User-Role";
+                add_header Content-Length 0;
+                add_header Content-Type text/plain;
+                return 204;
+            }
+        }
+    }
+}

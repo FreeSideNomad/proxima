@@ -4,7 +4,7 @@
     <title>System Status</title>
 </head>
 <body>
-<div th:replace="layout :: layout(~{::content})">
+<div th:replace="~{layout :: layout(~{::content})}">
     <div th:fragment="content">
         <!-- Status Header -->
         <div class="lcars-panel">
@@ -148,10 +148,10 @@
             </script>
         </div>
 
-        <!-- API Endpoints -->
+        <!-- Endpoints -->
         <div class="lcars-panel">
             <div class="lcars-panel-header">
-                API Endpoints
+                Endpoints
             </div>
 
             <table class="lcars-table">
@@ -164,16 +164,16 @@
                 </thead>
                 <tbody>
                 <tr>
-                    <td><code>/proxy/*</code></td>
-                    <td>Reverse proxy endpoint</td>
+                    <td><code>/api/*</code></td>
+                    <td>Dynamic routes (proxied)</td>
                     <td>
-                        <a href="/proxy/anything" target="_blank" class="lcars-button"
+                        <a href="/api/users/test" target="_blank" class="lcars-button"
                            style="padding: 2px 8px; font-size: 0.8rem;">TEST</a>
                     </td>
                 </tr>
                 <tr>
-                    <td><code>/proxima/api/config/*</code></td>
-                    <td>Configuration management</td>
+                    <td><code>/proxima/api/*</code></td>
+                    <td>System API (internal)</td>
                     <td>
                         <a href="/proxima/api/config/info" target="_blank" class="lcars-button info"
                            style="padding: 2px 8px; font-size: 0.8rem;">VIEW</a>
@@ -181,7 +181,7 @@
                 </tr>
                 <tr>
                     <td><code>/actuator/*</code></td>
-                    <td>Health and monitoring</td>
+                    <td>Health monitoring</td>
                     <td>
                         <a href="/actuator/health" target="_blank" class="lcars-button"
                            style="padding: 2px 8px; font-size: 0.8rem;">CHECK</a>
@@ -189,9 +189,9 @@
                 </tr>
                 <tr>
                     <td><code>/proxima/ui/*</code></td>
-                    <td>Web interface</td>
+                    <td>Admin interface</td>
                     <td>
-                        <a th:href="@{/ui}" class="lcars-button success"
+                        <a th:href="@{/proxima/ui}" class="lcars-button success"
                            style="padding: 2px 8px; font-size: 0.8rem;">OPEN</a>
                     </td>
                 </tr>
@@ -226,7 +226,7 @@
                 async function testProxy() {
                     showDiagnosticResult('Testing proxy functionality...', 'info');
                     try {
-                        const response = await fetch('/proxy/anything');
+                        const response = await fetch('/api/users/test');
                         if (response.ok) {
                             showDiagnosticResult('✓ Proxy test successful', 'success');
                         } else {
@@ -246,7 +246,7 @@
                 async function testHeaders() {
                     showDiagnosticResult('Testing header injection...', 'info');
                     try {
-                        const response = await fetch('/proxy/headers');
+                        const response = await fetch('/api/users/test');
                         if (response.ok) {
                             showDiagnosticResult('✓ Headers are being injected correctly', 'success');
                         } else {

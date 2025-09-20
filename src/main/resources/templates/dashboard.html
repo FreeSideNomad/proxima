@@ -1,4 +1,4 @@
-<div th:replace="layout :: layout(~{::content})">
+<div th:replace="~{layout :: layout(~{::content})}">
     <div th:fragment="content">
         <!-- Dashboard Header -->
         <div class="lcars-panel">
@@ -58,7 +58,7 @@
                 <a th:href="@{/proxima/ui/status}" class="lcars-button">
                     System Status
                 </a>
-                <a href="/proxy/anything" target="_blank" class="lcars-button success">
+                <a href="/api/users/test" target="_blank" class="lcars-button success">
                     Test Proxy
                 </a>
             </div>
@@ -75,11 +75,11 @@
                     <p style="font-size: 0.9rem;">All systems functioning normally</p>
                 </div>
                 <div>
-                    <h3 style="color: var(--lcars-orange); margin-bottom: 10px;">API ENDPOINTS</h3>
+                    <h3 style="color: var(--lcars-orange); margin-bottom: 10px;">ENDPOINTS</h3>
                     <ul style="list-style: none; padding: 0;">
-                        <li style="margin: 5px 0;"><code>/api/config/*</code> - Configuration API</li>
-                        <li style="margin: 5px 0;"><code>/proxy/*</code> - Reverse Proxy</li>
-                        <li style="margin: 5px 0;"><code>/actuator/*</code> - Health Monitoring</li>
+                        <li style="margin: 5px 0;"><code>/proxima/api/*</code> - System API</li>
+                        <li style="margin: 5px 0;"><code>/api/*</code> - Dynamic Routes</li>
+                        <li style="margin: 5px 0;"><code>/actuator/*</code> - Health</li>
                     </ul>
                 </div>
             </div>

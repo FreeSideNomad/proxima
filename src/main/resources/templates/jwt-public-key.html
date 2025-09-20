@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Public Key</title>
+    <meta name="cache-version" content="20250920-005">
+</head>
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <!-- Back Navigation -->
+        <div class="lcars-panel">
+            <a th:href="@{/proxima/ui/jwt}" class="lcars-button">← Back to JWT Management</a>
+        </div>
+
+        <!-- Public Key Display -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Public Key: <span th:text="${keyId}">default</span>
+            </div>
+            <p style="margin-bottom: 20px;">
+                PEM format for use with jwt.io and other JWT verification tools.
+            </p>
+
+            <div class="lcars-form-group">
+                <label class="lcars-label">Public Key (PEM Format):</label>
+                <textarea class="lcars-input" rows="15" readonly style="font-family: monospace; width: 100%;" th:text="${publicKey}">
+                </textarea>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="lcars-button" onclick="copyPublicKey()">
+                    Copy to Clipboard
+                </button>
+                <a th:href="@{/proxima/ui/jwt}" class="lcars-button info">
+                    Back to JWT Management
+                </a>
+            </div>
+        </div>
+
+        <!-- Key Info Summary -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Key Information
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Algorithm</div>
+                    <div style="font-size: 1.5rem; color: var(--lcars-blue);">RS256</div>
+                    <div style="color: var(--lcars-light-gray);">RSA with SHA-256</div>
+                </div>
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Key Type</div>
+                    <div style="font-size: 1.5rem; color: var(--lcars-green);">RSA Public</div>
+                    <div style="color: var(--lcars-light-gray);">Asymmetric</div>
+                </div>
+                <div class="lcars-card">
+                    <div class="lcars-card-title">Usage</div>
+                    <div style="font-size: 1.5rem; color: var(--lcars-orange);">Verify</div>
+                    <div style="color: var(--lcars-light-gray);">Token Verification</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Usage Instructions
+            </div>
+            <div style="line-height: 1.6;">
+                <p><strong>For jwt.io:</strong></p>
+                <ol style="margin-left: 20px;">
+                    <li>Copy the public key above</li>
+                    <li>Go to <a href="https://jwt.io" target="_blank" style="color: var(--lcars-blue);">jwt.io</a></li>
+                    <li>Paste your JWT token in the "Encoded" section</li>
+                    <li>Select "RS256" algorithm</li>
+                    <li>Paste this public key in the "Verify Signature" section</li>
+                </ol>
+
+                <p style="margin-top: 20px;"><strong>For programmatic verification:</strong></p>
+                <p>Use this public key with your JWT library to verify tokens signed with the corresponding private key.</p>
+            </div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    </div>
+</div>
+
+<script>
+function copyPublicKey() {
+    const textarea = document.querySelector('textarea');
+    textarea.select();
+    document.execCommand('copy');
+    showAlert('Public key copied to clipboard', 'success');
+}
+</script>
+</body>
+</html>

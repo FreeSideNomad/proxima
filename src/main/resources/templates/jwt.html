@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>JWT Token Management</title>
-    <meta name="cache-version" content="20250920-002">
+    <meta name="cache-version" content="20250920-005">
 </head>
 <body>
 <div th:replace="~{layout :: layout(~{::content})}">
@@ -153,9 +153,9 @@
                                 <div style="color: var(--lcars-light-gray); font-size: 0.9rem;">RSA-SHA256 Asymmetric Key Pair</div>
                             </div>
                             <div>
-                                <button class="lcars-button info" th:data-key-id="${keyId}" onclick="getPublicKey(this.dataset.keyId)">
-                                    Public Key
-                                </button>
+                                <a class="lcars-button info" th:href="@{/proxima/ui/jwt/keys/{keyId}(keyId=${keyId})}">
+                                    View Public Key
+                                </a>
                                 <button class="lcars-button danger" th:data-key-id="${keyId}" onclick="deleteKey(this.dataset.keyId)">
                                     Delete
                                 </button>
@@ -303,43 +303,6 @@ async function deleteKey(keyId) {
     }
 }
 
-// Get public key
-async function getPublicKey(keyId) {
-    try {
-        const response = await fetch(`/proxima/api/jwt/keys/${keyId}/public`);
-        const result = await response.json();
-
-        if (result.status === 'error') {
-            showAlert(result.message, 'error');
-        } else {
-            // Display public key in a modal or popup with proper formatting for jwt.io
-            const publicKeyWindow = window.open('', '_blank', 'width=700,height=500');
-            publicKeyWindow.document.write(`
-                <html>
-                <head><title>Public Key: ${keyId}</title></head>
-                <body style="font-family: monospace; padding: 20px;">
-                    <h3>Public Key: ${keyId}</h3>
-                    <p>PEM Format (for jwt.io):</p>
-                    <textarea rows="15" cols="80" readonly style="width: 100%;">${result.publicKey}</textarea>
-                    <br><br>
-                    <button onclick="copyToClipboard()">Copy to Clipboard</button>
-                    <button onclick="window.close()">Close</button>
-                    <script>
-                        function copyToClipboard() {
-                            const textarea = document.querySelector('textarea');
-                            textarea.select();
-                            document.execCommand('copy');
-                            alert('Public key copied to clipboard');
-                        }
-                    </script>
-                </body>
-                </html>
-            `);
-        }
-    } catch (error) {
-        showAlert('Error retrieving public key: ' + error.message, 'error');
-    }
-}
 
 // showAlert function is available from the main lcars.js
 </script>

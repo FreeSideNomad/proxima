@@ -81,4 +81,19 @@ public class WebUIController {
         model.addAttribute("keyInfo", jwtService.getKeyInfo());
         return "jwt";
     }
+
+    @GetMapping("/jwt/keys/{keyId}")
+    public String showPublicKey(@PathVariable String keyId, Model model) {
+        try {
+            String publicKey = jwtService.getPublicKey(keyId);
+            model.addAttribute("keyId", keyId);
+            model.addAttribute("publicKey", publicKey);
+            model.addAttribute("keyInfo", jwtService.getKeyInfo());
+            return "jwt-public-key";
+        } catch (Exception e) {
+            model.addAttribute("error", "Key not found: " + keyId);
+            model.addAttribute("keyInfo", jwtService.getKeyInfo());
+            return "jwt";
+        }
+    }
 }

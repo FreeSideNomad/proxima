@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title != null ? title + ' - Proxima' : 'Proxima - JWT Reverse Proxy'}">Proxima</title>
-    <link rel="stylesheet" th:href="@{/proxima/css/lcars.css}">
+    <link rel="stylesheet" th:href="@{/proxima/css/lcars.css(v=20250920-001)}">
 </head>
 <body>
     <div class="lcars-container">
@@ -65,6 +65,6 @@
         </main>
     </div>
 
-    <script th:src="@{/proxima/js/lcars.js}"></script>
+    <script th:src="@{/proxima/js/lcars.js(v=20250920-001)}"></script>
 </body>
 </html>

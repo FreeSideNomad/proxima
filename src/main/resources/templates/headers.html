@@ -4,7 +4,7 @@
     <title>Header Management</title>
 </head>
 <body>
-<div th:replace="layout :: layout(~{::content})">
+<div th:replace="~{layout :: layout(~{::content})}">
     <div th:fragment="content">
         <!-- Headers Header -->
         <div class="lcars-panel">
@@ -102,11 +102,8 @@
             </p>
 
             <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
-                <a href="/anything" target="_blank" class="lcars-button success">
+                <a href="/api/users/test" target="_blank" class="lcars-button success">
                     TEST HEADERS
-                </a>
-                <a href="/headers" target="_blank" class="lcars-button info">
-                    VIEW RAW HEADERS
                 </a>
                 <button onclick="copyTestCommand()" class="lcars-button">
                     COPY CURL
@@ -116,7 +113,7 @@
             <!-- Sample curl command -->
             <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px;">
                 <h5 style="color: var(--lcars-orange); margin-bottom: 10px;">Sample Test Command:</h5>
-                <pre id="curl-command" style="color: var(--lcars-green); font-family: monospace; margin: 0; word-wrap: break-word;">curl -X GET http://localhost:8080/anything</pre>
+                <pre id="curl-command" style="color: var(--lcars-green); font-family: monospace; margin: 0; word-wrap: break-word;">curl -X GET http://localhost:8080/api/users/test</pre>
                 <p style="margin-top: 10px; font-size: 0.9rem; color: var(--lcars-light-gray);">
                     This will show you all headers being sent to the downstream service, including the injected ones.
                 </p>
@@ -158,11 +155,7 @@
                     </li>
                     <li style="margin: 8px 0; padding-left: 25px; position: relative;">
                         <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">2.</span>
-                        Modify preset configurations in your <code>application.yml</code> file
-                    </li>
-                    <li style="margin: 8px 0; padding-left: 25px; position: relative;">
-                        <span style="position: absolute; left: 0; color: var(--lcars-orange); font-weight: 700;">3.</span>
-                        Use environment variables to override header values
+                        Modify preset configurations in your <code>config-local.json</code> file
                     </li>
                 </ol>
             </div>

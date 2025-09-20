@@ -190,7 +190,22 @@ public final class JwtService {
             throw new IllegalArgumentException("RSA key not found: " + keyId);
         }
 
-        return Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+        // Convert to PEM format for jwt.io compatibility
+        byte[] encoded = keyPair.getPublic().getEncoded();
+        String base64 = Base64.getEncoder().encodeToString(encoded);
+
+        // Format as PEM with proper line breaks
+        StringBuilder pem = new StringBuilder();
+        pem.append("-----BEGIN PUBLIC KEY-----\n");
+
+        // Add line breaks every 64 characters
+        for (int i = 0; i < base64.length(); i += 64) {
+            int endIndex = Math.min(i + 64, base64.length());
+            pem.append(base64.substring(i, endIndex)).append("\n");
+        }
+
+        pem.append("-----END PUBLIC KEY-----");
+        return pem.toString();
     }
 
     public Map<String, Object> getJwks() {

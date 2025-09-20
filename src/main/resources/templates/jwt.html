@@ -4,7 +4,7 @@
     <title>JWT Token Management</title>
 </head>
 <body>
-<div th:replace="layout :: layout(~{::content})">
+<div th:replace="~{layout :: layout(~{::content})}">
     <div th:fragment="content">
         <!-- JWT Management Header -->
         <div class="lcars-panel">
@@ -13,7 +13,7 @@
             </div>
             <p style="margin-bottom: 20px;">
                 Generate and manage JWT tokens with custom claims and key management.
-                Support for both HMAC (HS256) and RSA (RS256) signing algorithms.
+                Support for RSA (RS256) signing algorithm for OAuth tokens.
             </p>
         </div>
 
@@ -23,11 +23,6 @@
                 Cryptographic Keys Status
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
-                <div class="lcars-card">
-                    <div class="lcars-card-title">HMAC Keys</div>
-                    <div style="font-size: 2rem; color: var(--lcars-orange);" th:text="${keyInfo.hmacKeys.size()}">0</div>
-                    <div style="color: var(--lcars-light-gray);">HS256 Symmetric</div>
-                </div>
                 <div class="lcars-card">
                     <div class="lcars-card-title">RSA Keys</div>
                     <div style="font-size: 2rem; color: var(--lcars-blue);" th:text="${keyInfo.rsaKeys.size()}">0</div>
@@ -55,7 +50,6 @@
                 <div class="lcars-form-group">
                     <label class="lcars-label" for="algorithm">Algorithm</label>
                     <select id="algorithm" name="algorithm" class="lcars-select">
-                        <option value="HS256">HS256 (HMAC)</option>
                         <option value="RS256">RS256 (RSA)</option>
                     </select>
                 </div>
@@ -124,20 +118,7 @@
             <div class="lcars-panel-header">
                 Key Management
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <!-- HMAC Key Generation -->
-                <div>
-                    <h4 style="color: var(--lcars-orange); margin-bottom: 15px;">Generate HMAC Key</h4>
-                    <form id="hmac-key-form">
-                        <div class="lcars-form-group">
-                            <label class="lcars-label" for="hmac-key-id">Key ID</label>
-                            <input type="text" id="hmac-key-id" name="keyId" class="lcars-input" placeholder="my-hmac-key" required>
-                        </div>
-                        <button type="submit" class="lcars-button">
-                            Generate HMAC Key
-                        </button>
-                    </form>
-                </div>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 500px;">
 
                 <!-- RSA Key Generation -->
                 <div>
@@ -161,22 +142,6 @@
                 Available Keys
             </div>
             <div id="keys-list">
-                <div th:if="${keyInfo.hmacKeys != null and !keyInfo.hmacKeys.isEmpty()}">
-                    <h4 style="color: var(--lcars-orange); margin: 15px 0;">HMAC Keys (HS256)</h4>
-                    <div th:each="keyId : ${keyInfo.hmacKeys}" class="lcars-card" style="margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div class="lcars-card-title" th:text="${keyId}">key-id</div>
-                                <div style="color: var(--lcars-light-gray); font-size: 0.9rem;">HMAC-SHA256 Symmetric Key</div>
-                            </div>
-                            <div>
-                                <button class="lcars-button danger" th:data-key-id="${keyId}" onclick="deleteKey(this.dataset.keyId)"
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div th:if="${keyInfo.rsaKeys != null and !keyInfo.rsaKeys.isEmpty()}">
                     <h4 style="color: var(--lcars-blue); margin: 15px 0;">RSA Keys (RS256)</h4>
@@ -281,34 +246,6 @@ function clearTokenForm() {
     document.getElementById('token-result').style.display = 'none';
 }
 
-// HMAC Key Generation
-document.getElementById('hmac-key-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-    const request = { keyId: formData.get('keyId') };
-
-    try {
-        const response = await fetch('/proxima/api/jwt/keys/hmac', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(request)
-        });
-
-        const result = await response.json();
-
-        if (result.status === 'error') {
-            showAlert(result.message, 'error');
-        } else {
-            showAlert(`HMAC key "${result.keyId}" generated successfully`, 'success');
-            setTimeout(() => window.location.reload(), 2000);
-        }
-    } catch (error) {
-        showAlert('Error generating HMAC key: ' + error.message, 'error');
-    }
-});
 
 // RSA Key Generation
 document.getElementById('rsa-key-form').addEventListener('submit', async function(e) {
@@ -356,7 +293,7 @@ async function deleteKey(keyId) {
             showAlert(result.message, 'error');
         } else {
             showAlert(`Key "${keyId}" deleted successfully`, 'success');
-            setTimeout(() => window.location.reload(), 2000);
+            window.location.reload();
         }
     } catch (error) {
         showAlert('Error deleting key: ' + error.message, 'error');
@@ -372,16 +309,26 @@ async function getPublicKey(keyId) {
         if (result.status === 'error') {
             showAlert(result.message, 'error');
         } else {
-            // Display public key in a modal or popup
-            const publicKeyWindow = window.open('', '_blank', 'width=600,height=400');
+            // Display public key in a modal or popup with proper formatting for jwt.io
+            const publicKeyWindow = window.open('', '_blank', 'width=700,height=500');
             publicKeyWindow.document.write(`
                 <html>
                 <head><title>Public Key: ${keyId}</title></head>
                 <body style="font-family: monospace; padding: 20px;">
                     <h3>Public Key: ${keyId}</h3>
-                    <textarea rows="15" cols="70" readonly>${result.publicKey}</textarea>
+                    <p>PEM Format (for jwt.io):</p>
+                    <textarea rows="15" cols="80" readonly style="width: 100%;">${result.publicKey}</textarea>
                     <br><br>
+                    <button onclick="copyToClipboard()">Copy to Clipboard</button>
                     <button onclick="window.close()">Close</button>
+                    <script>
+                        function copyToClipboard() {
+                            const textarea = document.querySelector('textarea');
+                            textarea.select();
+                            document.execCommand('copy');
+                            alert('Public key copied to clipboard');
+                        }
+                    </script>
                 </body>
                 </html>
             `);

@@ -214,10 +214,6 @@
                     <div class="lcars-card-title">DOWNSTREAM TEST</div>
                     <div style="font-size: 0.9rem; color: var(--lcars-light-gray);">Check downstream connectivity</div>
                 </div>
-                <div class="lcars-card" onclick="testHeaders()">
-                    <div class="lcars-card-title">HEADER TEST</div>
-                    <div style="font-size: 0.9rem; color: var(--lcars-light-gray);">Verify header injection</div>
-                </div>
             </div>
 
             <div id="diagnostic-results" style="display: none;"></div>
@@ -243,19 +239,6 @@
                     showDiagnosticResult('ℹ Downstream test requires manual verification', 'warning');
                 }
 
-                async function testHeaders() {
-                    showDiagnosticResult('Testing header injection...', 'info');
-                    try {
-                        const response = await fetch('/api/users/test');
-                        if (response.ok) {
-                            showDiagnosticResult('✓ Headers are being injected correctly', 'success');
-                        } else {
-                            showDiagnosticResult('⚠ Header test failed: ' + response.status, 'error');
-                        }
-                    } catch (error) {
-                        showDiagnosticResult('⚠ Header test failed: ' + error.message, 'error');
-                    }
-                }
 
                 function showDiagnosticResult(message, type) {
                     const resultDiv = document.getElementById('diagnostic-results');

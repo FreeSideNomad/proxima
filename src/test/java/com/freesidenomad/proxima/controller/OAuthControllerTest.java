@@ -80,7 +80,7 @@ class OAuthControllerTest {
             .thenReturn(authCode);
 
         // Act & Assert
-        mockMvc.perform(get("/oauth/authorize")
+        mockMvc.perform(get("/oauth2/authorize")
                 .param("response_type", "code")
                 .param("client_id", "test-client")
                 .param("redirect_uri", "http://localhost:8080/callback")
@@ -104,7 +104,7 @@ class OAuthControllerTest {
     void shouldReturnErrorForUnsupportedResponseType() throws Exception {
         when(configurationService.getAllPresets()).thenReturn(Arrays.asList(oidcPreset));
 
-        mockMvc.perform(get("/oauth/authorize")
+        mockMvc.perform(get("/oauth2/authorize")
                 .param("response_type", "token")
                 .param("client_id", "test-client")
                 .param("redirect_uri", "http://localhost:8080/callback"))
@@ -120,7 +120,7 @@ class OAuthControllerTest {
     void shouldReturnErrorForInvalidClient() throws Exception {
         when(configurationService.getAllPresets()).thenReturn(Arrays.asList());
 
-        mockMvc.perform(get("/oauth/authorize")
+        mockMvc.perform(get("/oauth2/authorize")
                 .param("response_type", "code")
                 .param("client_id", "invalid-client")
                 .param("redirect_uri", "http://localhost:8080/callback"))
@@ -137,7 +137,7 @@ class OAuthControllerTest {
         List<HeaderPreset> presets = Arrays.asList(oidcPreset);
         when(configurationService.getAllPresets()).thenReturn(presets);
 
-        mockMvc.perform(get("/oauth/authorize")
+        mockMvc.perform(get("/oauth2/authorize")
                 .param("response_type", "code")
                 .param("client_id", "test-client")
                 .param("redirect_uri", "http://evil.com/callback"))

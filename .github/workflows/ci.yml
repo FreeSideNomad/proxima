@@ -214,6 +214,9 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
 
+    - name: Build JAR for E2E tests
+      run: mvn package -DskipTests
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:

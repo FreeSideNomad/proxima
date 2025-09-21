@@ -21,7 +21,7 @@ class OidcClientServiceTest {
     @Test
     void shouldInitializeWithDefaultClients() {
         List<OidcClient> clients = service.getAllClients();
-        assertEquals(2, clients.size());
+        assertEquals(3, clients.size());
 
         Optional<OidcClient> testClient = service.getClientById("test-client");
         assertTrue(testClient.isPresent());
@@ -156,15 +156,15 @@ class OidcClientServiceTest {
     @Test
     void shouldGetStats() {
         OidcClientService.ClientStats stats = service.getStats();
-        assertEquals(2, stats.totalClients());
-        assertEquals(2, stats.enabledClients());
+        assertEquals(3, stats.totalClients());
+        assertEquals(3, stats.enabledClients());
         assertEquals(0, stats.disabledClients());
 
         // Disable one client
         service.setClientEnabled("test-client", false);
         stats = service.getStats();
-        assertEquals(2, stats.totalClients());
-        assertEquals(1, stats.enabledClients());
+        assertEquals(3, stats.totalClients());
+        assertEquals(2, stats.enabledClients());
         assertEquals(1, stats.disabledClients());
 
         // Add a new client
@@ -178,8 +178,8 @@ class OidcClientServiceTest {
         service.registerClient(newClient);
 
         stats = service.getStats();
-        assertEquals(3, stats.totalClients());
-        assertEquals(2, stats.enabledClients());
+        assertEquals(4, stats.totalClients());
+        assertEquals(3, stats.enabledClients());
         assertEquals(1, stats.disabledClients());
     }
 

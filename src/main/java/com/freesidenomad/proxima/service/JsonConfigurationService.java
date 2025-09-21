@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freesidenomad.proxima.model.ProximaConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -18,9 +20,13 @@ public class JsonConfigurationService {
     private static final Logger logger = LoggerFactory.getLogger(JsonConfigurationService.class);
     private static final String CONFIG_FILE_PATH = "config.json";
     private static final String LOCAL_CONFIG_FILE_PATH = "config-local.json";
+    private static final String TEST_CONFIG_FILE_PATH = "test-config.json";
     private final ObjectMapper objectMapper = new ObjectMapper();
     private ProximaConfig cachedConfig;
     private long lastModified = 0;
+
+    @Autowired
+    private Environment environment;
 
     public ProximaConfig loadConfiguration() {
         // First check for test resources config.json
@@ -37,6 +43,27 @@ public class JsonConfigurationService {
 
         // Determine config file based on environment
         String configFilePath = determineConfigFile();
+
+        // Handle classpath resources
+        if (configFilePath.startsWith("classpath:")) {
+            String resourcePath = configFilePath.substring("classpath:".length());
+            try {
+                var resource = getClass().getClassLoader().getResourceAsStream(resourcePath);
+                if (resource != null) {
+                    ProximaConfig config = objectMapper.readValue(resource, ProximaConfig.class);
+                    logger.info("Configuration loaded from {}", configFilePath);
+                    return config;
+                } else {
+                    logger.error("Classpath resource not found: {}", resourcePath);
+                    return createDefaultConfig();
+                }
+            } catch (IOException e) {
+                logger.error("Error loading configuration from {}: {}", configFilePath, e.getMessage());
+                return createDefaultConfig();
+            }
+        }
+
+        // Handle file system resources
         File configFile = new File(configFilePath);
 
         if (!configFile.exists()) {
@@ -59,6 +86,28 @@ public class JsonConfigurationService {
     }
 
     private String determineConfigFile() {
+        // Check if we're running with test profile
+        if (environment != null && Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+            // First try to load from classpath
+            try {
+                var resource = getClass().getClassLoader().getResourceAsStream(TEST_CONFIG_FILE_PATH);
+                if (resource != null) {
+                    resource.close();
+                    logger.info("Test profile active, using classpath: {}", TEST_CONFIG_FILE_PATH);
+                    return "classpath:" + TEST_CONFIG_FILE_PATH;
+                }
+            } catch (IOException e) {
+                // Continue to file system check
+            }
+
+            // Fallback to file system
+            File testConfig = new File(TEST_CONFIG_FILE_PATH);
+            if (testConfig.exists()) {
+                logger.info("Test profile active, using {}", TEST_CONFIG_FILE_PATH);
+                return TEST_CONFIG_FILE_PATH;
+            }
+        }
+
         // Check if we're running in Docker by looking for Docker-specific environment indicators
         boolean isDocker = isRunningInDocker();
 

@@ -42,6 +42,14 @@
                    th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/jwt' ? 'active' : ''}">
                     JWT Tokens
                 </a>
+                <a th:href="@{/proxima/ui/oidc-testing}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/oidc-testing' ? 'active' : ''}">
+                    OIDC Testing
+                </a>
+                <a th:href="@{/proxima/ui/oidc-clients}" class="lcars-nav-item"
+                   th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/oidc-clients' ? 'active' : ''}">
+                    OIDC Clients
+                </a>
                 <a th:href="@{/proxima/ui/status}" class="lcars-nav-item"
                    th:classappend="${#httpServletRequest != null and #httpServletRequest.requestURI == '/proxima/ui/status' ? 'active' : ''}">
                     Status

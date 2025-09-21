@@ -119,20 +119,21 @@
                     }
 
                     try {
-                        const response = await fetch(`/proxima/api/config/routes/test/${encodeURIComponent(path)}`);
-                        const result = await response.json();
+                        // Test the actual route by making a request to the dynamic route
+                        const testUrl = `/${path}`;
+                        const response = await fetch(testUrl);
 
                         resultDiv.innerHTML = `
                             <div class="lcars-alert success">
                                 <h4 style="margin-bottom: 10px;">Route Test Result:</h4>
-                                <p><strong>Input Path:</strong> <code>${result.inputPath}</code></p>
-                                <p><strong>Resolved URL:</strong> <code>${result.resolvedUrl}</code></p>
-                                <p><strong>Matching Rule:</strong> ${result.matchingRoute.pattern || result.matchingRoute.message}</p>
+                                <p><strong>Test URL:</strong> <code>${testUrl}</code></p>
+                                <p><strong>Status:</strong> <code>${response.status} ${response.statusText}</code></p>
+                                <p><strong>Response:</strong> ${response.ok ? 'Success' : 'Error'}</p>
                             </div>
                         `;
                         resultDiv.style.display = 'block';
                     } catch (error) {
-                        resultDiv.innerHTML = '<div class="lcars-alert error">Error testing route</div>';
+                        resultDiv.innerHTML = '<div class="lcars-alert error">Error testing route: ' + error.message + '</div>';
                         resultDiv.style.display = 'block';
                     }
                 }
@@ -184,7 +185,7 @@
 
             <div style="margin-top: 15px;">
                 <a href="/proxima/api/config/routes" target="_blank" class="lcars-button info">
-                    View JSON API
+                    VIEW JSON API
                 </a>
             </div>
         </div>

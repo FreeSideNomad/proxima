@@ -109,6 +109,8 @@ public class ConfigurationService {
         preset.setName(configPreset.getName());
         preset.setDisplayName(configPreset.getDisplayName());
         preset.setHeaders(configPreset.getHeaders());
+        preset.setHeaderMappings(configPreset.getHeaderMappings());
+        preset.setOidcConfig(configPreset.getOidcConfig());
         return preset;
     }
 

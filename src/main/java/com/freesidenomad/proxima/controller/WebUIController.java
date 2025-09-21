@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/proxima/ui")
@@ -95,5 +96,31 @@ public class WebUIController {
             model.addAttribute("keyInfo", jwtService.getKeyInfo());
             return "jwt";
         }
+    }
+
+    @GetMapping("/oidc-testing")
+    public String oidcTesting(Model model) {
+        return "oidc-testing";
+    }
+
+    @GetMapping("/oidc-clients")
+    public String oidcClients(Model model) {
+        return "oidc-clients";
+    }
+
+    @GetMapping("/oidc-testing/callback")
+    public String oidcTestingCallback(
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "state", required = false) String state,
+            @RequestParam(value = "error", required = false) String error,
+            @RequestParam(value = "error_description", required = false) String errorDescription,
+            Model model) {
+
+        model.addAttribute("authCode", code);
+        model.addAttribute("state", state);
+        model.addAttribute("error", error);
+        model.addAttribute("errorDescription", errorDescription);
+
+        return "oidc-testing-callback";
     }
 }

@@ -98,10 +98,10 @@ class ProximaUI {
                 this.updatePresetButtons(presetName);
                 this.updatePresetStatusIndicators(presetName);
 
-                // Reload the page after a short delay to ensure all UI elements reflect the new state
+                // Reload the page after a longer delay to ensure all UI elements reflect the new state
                 setTimeout(() => {
                     window.location.reload();
-                }, 1000);
+                }, 2000);
             } else {
                 this.playLCARSSound('error');
                 this.showAlert(result.message, 'error');

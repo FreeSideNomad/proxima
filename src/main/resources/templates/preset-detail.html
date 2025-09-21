@@ -45,6 +45,89 @@
             </div>
         </div>
 
+        <!-- OIDC Configuration -->
+        <div class="lcars-panel" th:if="${preset != null and preset.oidcConfig != null and preset.oidcConfig.enabled}">
+            <div class="lcars-panel-header">
+                OIDC Configuration
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Client Configuration -->
+                <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; border-left: 3px solid var(--lcars-green);">
+                    <h4 style="color: var(--lcars-green); margin-top: 0;">Client Configuration</h4>
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;">
+                        <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Client ID:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${preset.oidcConfig.clientId}">test-client</div>
+
+                        <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Redirect URI:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem; word-break: break-all;" th:text="${preset.oidcConfig.redirectUri}">http://localhost:8080/callback</div>
+
+                        <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Scopes:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${#strings.listJoin(preset.oidcConfig.scopes, ', ')}">openid, profile, email</div>
+
+                        <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Algorithm:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${preset.oidcConfig.algorithm}">RS256</div>
+
+                        <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Token Expiration:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${preset.oidcConfig.tokenExpirationSeconds} + ' seconds'">3600 seconds</div>
+                    </div>
+                </div>
+
+                <!-- User Claims Configuration -->
+                <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; border-left: 3px solid var(--lcars-blue);">
+                    <h4 style="color: var(--lcars-blue); margin-top: 0;">User Claims</h4>
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;">
+                        <div style="color: var(--lcars-blue); font-weight: 700; font-size: 0.9rem;">Subject:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${preset.oidcConfig.subject}">user@example.com</div>
+
+                        <div th:if="${preset.oidcConfig.email}" style="color: var(--lcars-blue); font-weight: 700; font-size: 0.9rem;">Email:</div>
+                        <div th:if="${preset.oidcConfig.email}" style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${preset.oidcConfig.email}">user@example.com</div>
+
+                        <div th:if="${preset.oidcConfig.name}" style="color: var(--lcars-blue); font-weight: 700; font-size: 0.9rem;">Name:</div>
+                        <div th:if="${preset.oidcConfig.name}" style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${preset.oidcConfig.name}">John Doe</div>
+
+                        <div th:if="${preset.oidcConfig.preferredUsername}" style="color: var(--lcars-blue); font-weight: 700; font-size: 0.9rem;">Username:</div>
+                        <div th:if="${preset.oidcConfig.preferredUsername}" style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${preset.oidcConfig.preferredUsername}">johndoe</div>
+
+                        <div th:if="${preset.oidcConfig.groups != null and !preset.oidcConfig.groups.isEmpty()}" style="color: var(--lcars-blue); font-weight: 700; font-size: 0.9rem;">Groups:</div>
+                        <div th:if="${preset.oidcConfig.groups != null and !preset.oidcConfig.groups.isEmpty()}" style="color: var(--lcars-white); font-family: monospace; font-size: 0.9rem;" th:text="${#strings.listJoin(preset.oidcConfig.groups, ', ')}">admin, users</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Claims -->
+            <div th:if="${preset.oidcConfig.customClaims != null and !preset.oidcConfig.customClaims.isEmpty()}"
+                 style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; border-left: 3px solid var(--lcars-orange);">
+                <h4 style="color: var(--lcars-orange); margin-top: 0;">Custom Claims</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                    <div th:each="claim : ${preset.oidcConfig.customClaims}"
+                         style="background-color: var(--lcars-dark-gray); padding: 10px; border-radius: 3px;">
+                        <div style="color: var(--lcars-orange); font-weight: 700; font-size: 0.9rem;" th:text="${claim.key}">department</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem;" th:text="${claim.value}">engineering</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OIDC Testing -->
+            <div style="margin-top: 20px; padding: 15px; background-color: var(--lcars-dark-gray); border-radius: 5px;">
+                <h4 style="color: var(--lcars-yellow); margin-top: 0;">OIDC Testing Tools</h4>
+                <p style="margin-bottom: 15px; color: var(--lcars-light-gray);">
+                    Test the complete OIDC authorization flow with this preset configuration.
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a th:href="@{/proxima/ui/oidc-testing}" class="lcars-button success">
+                        OIDC Testing Tools
+                    </a>
+                    <a th:href="@{/.well-known/openid_configuration}" target="_blank" class="lcars-button info">
+                        Discovery Metadata
+                    </a>
+                    <a th:href="@{/oauth/jwks}" target="_blank" class="lcars-button">
+                        JWKS Endpoint
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Headers Configuration -->
         <div class="lcars-panel" th:if="${preset != null and preset.headers != null and !preset.headers.isEmpty()}">
             <div class="lcars-panel-header">

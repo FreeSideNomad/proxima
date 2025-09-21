@@ -48,6 +48,33 @@
                     </div>
                 </div>
 
+                <!-- OIDC Configuration Preview -->
+                <div th:if="${preset.oidcConfig != null and preset.oidcConfig.enabled}">
+                    <h4 style="color: var(--lcars-green); margin: 15px 0 10px 0;">OIDC Configuration:</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; border-left: 3px solid var(--lcars-green);">
+                            <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;">
+                                <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Client ID:</div>
+                                <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem;" th:text="${preset.oidcConfig.clientId}">test-client</div>
+
+                                <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Subject:</div>
+                                <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem;" th:text="${preset.oidcConfig.subject}">user@example.com</div>
+
+                                <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Scopes:</div>
+                                <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem;" th:text="${#strings.listJoin(preset.oidcConfig.scopes, ', ')}">openid, profile</div>
+
+                                <div style="color: var(--lcars-green); font-weight: 700; font-size: 0.9rem;">Algorithm:</div>
+                                <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem;" th:text="${preset.oidcConfig.algorithm}">RS256</div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <a th:href="@{/proxima/ui/oidc-testing}" class="lcars-button success" style="font-size: 0.8rem; padding: 5px 10px;">
+                                    Test OIDC Flow
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Headers Preview -->
                 <div th:if="${preset.headers != null and !preset.headers.isEmpty()}">
                     <h4 style="color: var(--lcars-blue); margin: 15px 0 10px 0;">Headers:</h4>
@@ -91,10 +118,33 @@
         "Authorization": "Bearer your-token",
         "X-Custom-Header": "your-value"
       },
-      "headerMappings": {}
+      "headerMappings": {},
+      "oidcConfig": {
+        "enabled": true,
+        "subject": "user@example.com",
+        "clientId": "my-app-client",
+        "redirectUri": "http://localhost:8080/callback",
+        "scopes": ["openid", "profile", "email"],
+        "tokenExpirationSeconds": 3600,
+        "algorithm": "RS256",
+        "keyId": "my-key-id",
+        "email": "user@example.com",
+        "name": "John Doe",
+        "preferredUsername": "johndoe",
+        "groups": ["users", "admin"],
+        "customClaims": {
+          "department": "engineering",
+          "role": "developer"
+        }
+      }
     }
   ]
 }</pre>
+            <div style="margin-top: 15px;">
+                <div class="lcars-alert info">
+                    <strong>OIDC Configuration:</strong> When OIDC is enabled, the preset will provide OAuth 2.0/OIDC authorization endpoints and automatically generate JWT tokens with the configured claims.
+                </div>
+            </div>
             <div style="margin-top: 15px;">
                 <a th:href="@{/proxima/ui/status}" class="lcars-button">
                     Validate Configuration

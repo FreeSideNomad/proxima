@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>OIDC Client Management</title>
+    <meta name="cache-version" content="20250920-007">
+</head>
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <!-- OIDC Clients Header -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                OIDC Client Management
+            </div>
+            <p style="margin-bottom: 20px;">
+                Manage OIDC client applications that can authenticate with this server.
+                Each client represents an application that can use the OAuth 2.0/OIDC authorization flow.
+            </p>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="lcars-button success" onclick="showRegisterClientModal()">
+                    Register New Client
+                </button>
+                <button class="lcars-button info" onclick="loadClients()">
+                    Refresh List
+                </button>
+                <button class="lcars-button" onclick="showClientStats()">
+                    View Statistics
+                </button>
+            </div>
+        </div>
+
+        <!-- Client Statistics -->
+        <div id="client-stats" class="lcars-panel" style="display: none;">
+            <div class="lcars-panel-header">
+                Client Statistics
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; border-left: 3px solid var(--lcars-blue);">
+                    <div style="color: var(--lcars-blue); font-weight: 700;">Total Clients</div>
+                    <div id="total-clients" style="color: var(--lcars-white); font-size: 1.5rem; font-family: monospace;">0</div>
+                </div>
+                <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; border-left: 3px solid var(--lcars-green);">
+                    <div style="color: var(--lcars-green); font-weight: 700;">Enabled Clients</div>
+                    <div id="enabled-clients" style="color: var(--lcars-white); font-size: 1.5rem; font-family: monospace;">0</div>
+                </div>
+                <div style="background-color: var(--lcars-black); padding: 15px; border-radius: 5px; border-left: 3px solid var(--lcars-red);">
+                    <div style="color: var(--lcars-red); font-weight: 700;">Disabled Clients</div>
+                    <div id="disabled-clients" style="color: var(--lcars-white); font-size: 1.5rem; font-family: monospace;">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clients List -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Registered OIDC Clients
+            </div>
+            <div id="clients-container">
+                <div class="lcars-alert info">
+                    Loading OIDC clients...
+                </div>
+            </div>
+        </div>
+
+        <!-- Register/Edit Client Modal -->
+        <div id="client-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: var(--lcars-dark-gray); padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 90%; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 id="modal-title" style="color: var(--lcars-orange); margin: 0;">Register New Client</h3>
+                    <button onclick="hideClientModal()" style="background: none; border: none; color: var(--lcars-red); font-size: 1.5rem; cursor: pointer;">×</button>
+                </div>
+
+                <form id="client-form" style="display: grid; gap: 15px;">
+                    <div class="lcars-form-group">
+                        <label class="lcars-label" for="modal-client-id">Client ID</label>
+                        <input type="text" id="modal-client-id" class="lcars-input" required>
+                    </div>
+
+                    <div class="lcars-form-group">
+                        <label class="lcars-label" for="modal-client-name">Client Name</label>
+                        <input type="text" id="modal-client-name" class="lcars-input" required>
+                    </div>
+
+                    <div class="lcars-form-group">
+                        <label class="lcars-label" for="modal-description">Description</label>
+                        <textarea id="modal-description" class="lcars-input" rows="3"></textarea>
+                    </div>
+
+                    <div class="lcars-form-group">
+                        <label class="lcars-label" for="modal-redirect-uris">Redirect URIs (one per line)</label>
+                        <textarea id="modal-redirect-uris" class="lcars-input" rows="4" required
+                                  placeholder="http://localhost:8080/callback&#10;http://localhost:3000/callback"></textarea>
+                    </div>
+
+                    <div class="lcars-form-group">
+                        <label class="lcars-label" for="modal-scopes">Allowed Scopes (comma-separated)</label>
+                        <input type="text" id="modal-scopes" class="lcars-input" value="openid,profile,email">
+                    </div>
+
+                    <div class="lcars-form-group">
+                        <label class="lcars-label">
+                            <input type="checkbox" id="modal-enabled" checked> Enabled
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" id="modal-submit" class="lcars-button success" onclick="submitClientForm()">
+                            Register Client
+                        </button>
+                        <button type="button" class="lcars-button" onclick="hideClientModal()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    </div>
+</div>
+
+<script>
+let currentEditingClientId = null;
+
+// Load all OIDC clients
+async function loadClients() {
+    try {
+        const response = await fetch('/proxima/api/oidc/clients');
+        const clients = await response.json();
+
+        const container = document.getElementById('clients-container');
+        if (clients.length === 0) {
+            container.innerHTML = '<div class="lcars-alert warning">No OIDC clients registered</div>';
+            return;
+        }
+
+        container.innerHTML = clients.map(client => createClientCard(client)).join('');
+        showAlert(`Loaded ${clients.length} OIDC clients`, 'success');
+    } catch (error) {
+        showAlert('Failed to load OIDC clients: ' + error.message, 'error');
+        document.getElementById('clients-container').innerHTML =
+            '<div class="lcars-alert error">Failed to load OIDC clients</div>';
+    }
+}
+
+// Create client card HTML
+function createClientCard(client) {
+    const redirectUris = client.redirectUris.map(uri =>
+        `<div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem; word-break: break-all; margin: 2px 0;">${uri}</div>`
+    ).join('');
+
+    const scopes = client.allowedScopes.join(', ');
+
+    return `
+        <div style="background-color: var(--lcars-black); padding: 20px; border-radius: 5px; border-left: 3px solid ${client.enabled ? 'var(--lcars-green)' : 'var(--lcars-red)'}; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h4 style="color: var(--lcars-orange); margin: 0; display: flex; align-items: center;">
+                        <span class="lcars-status ${client.enabled ? 'active' : 'inactive'}" style="margin-right: 10px;"></span>
+                        ${client.clientName}
+                    </h4>
+                    <p style="margin: 5px 0; color: var(--lcars-light-gray); font-size: 0.9rem;">
+                        Client ID: <code>${client.clientId}</code>
+                    </p>
+                    ${client.description ? `<p style="margin: 5px 0; color: var(--lcars-light-gray);">${client.description}</p>` : ''}
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="lcars-button info" onclick="editClient('${client.clientId}')">
+                        EDIT
+                    </button>
+                    <button class="lcars-button ${client.enabled ? 'warning' : 'success'}"
+                            onclick="toggleClientEnabled('${client.clientId}', ${!client.enabled})">
+                        ${client.enabled ? 'DISABLE' : 'ENABLE'}
+                    </button>
+                    <button class="lcars-button error" onclick="deleteClient('${client.clientId}')">
+                        DELETE
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h5 style="color: var(--lcars-blue); margin: 10px 0 5px 0;">Redirect URIs:</h5>
+                    ${redirectUris}
+                </div>
+                <div>
+                    <h5 style="color: var(--lcars-blue); margin: 10px 0 5px 0;">Allowed Scopes:</h5>
+                    <div style="color: var(--lcars-white); font-family: monospace; font-size: 0.8rem;">${scopes}</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px; padding: 10px; background-color: var(--lcars-dark-gray); border-radius: 3px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 0.8rem;">
+                    <div><span style="color: var(--lcars-light-gray);">Created:</span> ${new Date(client.createdAt).toLocaleString()}</div>
+                    <div><span style="color: var(--lcars-light-gray);">Modified:</span> ${new Date(client.modifiedAt).toLocaleString()}</div>
+                    <div><span style="color: var(--lcars-light-gray);">Status:</span> <span style="color: ${client.enabled ? 'var(--lcars-green)' : 'var(--lcars-red)'};">${client.enabled ? 'Enabled' : 'Disabled'}</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Show register client modal
+function showRegisterClientModal() {
+    currentEditingClientId = null;
+    document.getElementById('modal-title').textContent = 'Register New Client';
+    document.getElementById('modal-submit').textContent = 'Register Client';
+    document.getElementById('client-form').reset();
+    document.getElementById('modal-scopes').value = 'openid,profile,email';
+    document.getElementById('modal-enabled').checked = true;
+    document.getElementById('client-modal').style.display = 'block';
+}
+
+// Edit client
+async function editClient(clientId) {
+    try {
+        const response = await fetch(`/proxima/api/oidc/clients/${clientId}`);
+        const client = await response.json();
+
+        currentEditingClientId = clientId;
+        document.getElementById('modal-title').textContent = 'Edit Client';
+        document.getElementById('modal-submit').textContent = 'Update Client';
+
+        document.getElementById('modal-client-id').value = client.clientId;
+        document.getElementById('modal-client-name').value = client.clientName;
+        document.getElementById('modal-description').value = client.description || '';
+        document.getElementById('modal-redirect-uris').value = client.redirectUris.join('\n');
+        document.getElementById('modal-scopes').value = client.allowedScopes.join(',');
+        document.getElementById('modal-enabled').checked = client.enabled;
+
+        document.getElementById('client-modal').style.display = 'block';
+    } catch (error) {
+        showAlert('Failed to load client for editing: ' + error.message, 'error');
+    }
+}
+
+// Hide client modal
+function hideClientModal() {
+    document.getElementById('client-modal').style.display = 'none';
+    currentEditingClientId = null;
+}
+
+// Submit client form
+async function submitClientForm() {
+    const clientData = {
+        clientId: document.getElementById('modal-client-id').value,
+        clientName: document.getElementById('modal-client-name').value,
+        description: document.getElementById('modal-description').value,
+        redirectUris: document.getElementById('modal-redirect-uris').value
+            .split('\n')
+            .map(uri => uri.trim())
+            .filter(uri => uri.length > 0),
+        allowedScopes: document.getElementById('modal-scopes').value
+            .split(',')
+            .map(scope => scope.trim())
+            .filter(scope => scope.length > 0),
+        enabled: document.getElementById('modal-enabled').checked
+    };
+
+    try {
+        const url = currentEditingClientId
+            ? `/proxima/api/oidc/clients/${currentEditingClientId}`
+            : '/proxima/api/oidc/clients';
+        const method = currentEditingClientId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(clientData)
+        });
+
+        if (response.ok) {
+            hideClientModal();
+            loadClients();
+            showAlert(currentEditingClientId ? 'Client updated successfully' : 'Client registered successfully', 'success');
+        } else {
+            const error = await response.json();
+            showAlert('Error: ' + (error.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+    }
+}
+
+// Toggle client enabled status
+async function toggleClientEnabled(clientId, enabled) {
+    try {
+        const response = await fetch(`/proxima/api/oidc/clients/${clientId}/enabled`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ enabled: enabled })
+        });
+
+        if (response.ok) {
+            loadClients();
+            showAlert(`Client ${enabled ? 'enabled' : 'disabled'} successfully`, 'success');
+        } else {
+            showAlert('Failed to update client status', 'error');
+        }
+    } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+    }
+}
+
+// Delete client
+async function deleteClient(clientId) {
+    if (!confirm(`Are you sure you want to delete client '${clientId}'? This action cannot be undone.`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/proxima/api/oidc/clients/${clientId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            loadClients();
+            showAlert('Client deleted successfully', 'success');
+        } else {
+            showAlert('Failed to delete client', 'error');
+        }
+    } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+    }
+}
+
+// Show client statistics
+async function showClientStats() {
+    try {
+        const response = await fetch('/proxima/api/oidc/clients/stats');
+        const stats = await response.json();
+
+        document.getElementById('total-clients').textContent = stats.totalClients;
+        document.getElementById('enabled-clients').textContent = stats.enabledClients;
+        document.getElementById('disabled-clients').textContent = stats.disabledClients;
+        document.getElementById('client-stats').style.display = 'block';
+
+        showAlert('Statistics updated', 'success');
+    } catch (error) {
+        showAlert('Failed to load statistics: ' + error.message, 'error');
+    }
+}
+
+// Alert system
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alert-container');
+    const alert = document.createElement('div');
+    alert.className = `lcars-alert ${type}`;
+    alert.style.marginBottom = '10px';
+    alert.innerHTML = `<strong>${message}</strong>`;
+
+    alertContainer.appendChild(alert);
+
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 5000);
+}
+
+// Load clients on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadClients();
+    showClientStats();
+});
+</script>
+</body>
+</html>

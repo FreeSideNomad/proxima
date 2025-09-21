@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>OIDC Testing Callback</title>
+    <meta name="cache-version" content="20250920-008">
+</head>
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <!-- Callback Handler -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                OIDC Authorization Callback
+            </div>
+            <p style="margin-bottom: 20px;">
+                Processing authorization callback from OIDC provider...
+            </p>
+        </div>
+
+        <!-- Results Display -->
+        <div id="callback-results"></div>
+
+        <!-- Back Navigation -->
+        <div style="margin-top: 20px;">
+            <a th:href="@{/proxima/ui/oidc-testing}" class="lcars-button">
+                ← Back to OIDC Testing
+            </a>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // Get callback parameters from server
+    const authCode = /*[[${authCode}]]*/ null;
+    const state = /*[[${state}]]*/ null;
+    const error = /*[[${error}]]*/ null;
+    const errorDescription = /*[[${errorDescription}]]*/ null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (error) {
+            showCallbackError(error, errorDescription);
+        } else if (authCode) {
+            showCallbackSuccess(authCode, state);
+            // Send the results back to the parent window if opened in a popup
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'oidc-callback',
+                    authCode: authCode,
+                    state: state
+                }, window.location.origin);
+                window.close();
+            }
+        } else {
+            showCallbackError('invalid_request', 'No authorization code or error received');
+        }
+    });
+
+    function showCallbackSuccess(code, state) {
+        document.getElementById('callback-results').innerHTML = `
+            <div class="lcars-panel">
+                <div class="lcars-panel-header">
+                    Authorization Successful
+                </div>
+                <div class="lcars-alert success">
+                    <strong>✓ Authorization code received successfully</strong>
+                </div>
+                <div style="margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;">
+                        <div style="color: var(--lcars-green); font-weight: 700;">Authorization Code:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace; word-break: break-all;">${code}</div>
+
+                        ${state ? `
+                        <div style="color: var(--lcars-green); font-weight: 700;">State:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace;">${state}</div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="lcars-button success" onclick="exchangeTokens()">
+                        Exchange for Tokens
+                    </button>
+                    <button class="lcars-button" onclick="copyCode()">
+                        Copy Code
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function showCallbackError(errorType, description) {
+        document.getElementById('callback-results').innerHTML = `
+            <div class="lcars-panel">
+                <div class="lcars-panel-header">
+                    Authorization Failed
+                </div>
+                <div class="lcars-alert error">
+                    <strong>✗ Authorization failed</strong>
+                </div>
+                <div style="margin-top: 15px;">
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;">
+                        <div style="color: var(--lcars-red); font-weight: 700;">Error:</div>
+                        <div style="color: var(--lcars-white); font-family: monospace;">${errorType}</div>
+
+                        ${description ? `
+                        <div style="color: var(--lcars-red); font-weight: 700;">Description:</div>
+                        <div style="color: var(--lcars-white);">${description}</div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async function exchangeTokens() {
+        if (!authCode) return;
+
+        try {
+            const response = await fetch('/oauth/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    code: authCode,
+                    client_id: 'proxima-self-test',
+                    redirect_uri: window.location.origin + '/proxima/ui/oidc-testing/callback'
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                displayTokens(result);
+            } else {
+                showTokenError(result);
+            }
+        } catch (error) {
+            showTokenError({ error: 'network_error', error_description: error.message });
+        }
+    }
+
+    function displayTokens(tokens) {
+        const existingPanel = document.querySelector('#callback-results .lcars-panel');
+        const tokenPanel = document.createElement('div');
+        tokenPanel.className = 'lcars-panel';
+        tokenPanel.style.marginTop = '20px';
+        tokenPanel.innerHTML = `
+            <div class="lcars-panel-header">
+                Token Exchange Successful
+            </div>
+            <div class="lcars-alert success">
+                <strong>✓ Tokens received successfully</strong>
+            </div>
+            <div style="margin-top: 15px;">
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--lcars-blue); font-weight: 700; display: block; margin-bottom: 5px;">Access Token:</label>
+                    <textarea readonly style="width: 100%; height: 100px; font-family: monospace; font-size: 0.8rem; background: var(--lcars-black); color: var(--lcars-white); border: 1px solid var(--lcars-blue); padding: 10px;">${tokens.access_token || ''}</textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--lcars-blue); font-weight: 700; display: block; margin-bottom: 5px;">ID Token:</label>
+                    <textarea readonly style="width: 100%; height: 100px; font-family: monospace; font-size: 0.8rem; background: var(--lcars-black); color: var(--lcars-white); border: 1px solid var(--lcars-blue); padding: 10px;">${tokens.id_token || ''}</textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="color: var(--lcars-blue); font-weight: 700;">Token Type:</label>
+                        <div style="color: var(--lcars-white);">${tokens.token_type || 'Bearer'}</div>
+                    </div>
+                    <div>
+                        <label style="color: var(--lcars-blue); font-weight: 700;">Expires In:</label>
+                        <div style="color: var(--lcars-white);">${tokens.expires_in || 'N/A'} seconds</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        existingPanel.parentNode.appendChild(tokenPanel);
+    }
+
+    function showTokenError(error) {
+        const existingPanel = document.querySelector('#callback-results .lcars-panel');
+        const errorPanel = document.createElement('div');
+        errorPanel.className = 'lcars-panel';
+        errorPanel.style.marginTop = '20px';
+        errorPanel.innerHTML = `
+            <div class="lcars-panel-header">
+                Token Exchange Failed
+            </div>
+            <div class="lcars-alert error">
+                <strong>✗ Token exchange failed</strong>
+            </div>
+            <div style="margin-top: 15px;">
+                <div style="color: var(--lcars-red); font-weight: 700;">Error:</div>
+                <div style="color: var(--lcars-white); margin-bottom: 10px;">${error.error || 'Unknown error'}</div>
+
+                ${error.error_description ? `
+                <div style="color: var(--lcars-red); font-weight: 700;">Description:</div>
+                <div style="color: var(--lcars-white);">${error.error_description}</div>
+                ` : ''}
+            </div>
+        `;
+
+        existingPanel.parentNode.appendChild(errorPanel);
+    }
+
+    function copyCode() {
+        if (authCode) {
+            navigator.clipboard.writeText(authCode).then(() => {
+                alert('Authorization code copied to clipboard');
+            });
+        }
+    }
+</script>
+</body>
+</html>

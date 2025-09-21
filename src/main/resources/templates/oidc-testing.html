@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>OIDC Testing Tools</title>
+    <meta name="cache-version" content="20250920-006">
+</head>
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <!-- OIDC Testing Header -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                OIDC Authorization Flow Testing
+            </div>
+            <p style="margin-bottom: 20px;">
+                Test the complete OpenID Connect authorization code flow with your configured OIDC presets.
+            </p>
+        </div>
+
+        <!-- Discovery Endpoints -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Discovery Endpoints
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="lcars-card" onclick="testDiscoveryEndpoint()">
+                    <div class="lcars-card-title">Discovery Metadata</div>
+                    <div style="font-size: 0.9rem; color: var(--lcars-light-gray);">/.well-known/openid_configuration</div>
+                </div>
+                <div class="lcars-card" onclick="testJwksEndpoint()">
+                    <div class="lcars-card-title">JWKS Endpoint</div>
+                    <div style="font-size: 0.9rem; color: var(--lcars-light-gray);">/oauth/jwks</div>
+                </div>
+            </div>
+            <div id="discovery-results" style="display: none;"></div>
+        </div>
+
+        <!-- Self-Test Section -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                OIDC Self-Test
+            </div>
+            <p style="margin-bottom: 20px;">
+                Test the complete OIDC flow using Proxima as both the OIDC provider and client.
+                This will automatically configure the correct URLs and run a full authorization code flow.
+            </p>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <button class="lcars-button success" onclick="startSelfTest()">
+                    🔒 Start Self-Test Flow
+                </button>
+                <button class="lcars-button info" onclick="loadDynamicUrls()">
+                    🔄 Refresh URLs
+                </button>
+                <button class="lcars-button" onclick="showSelfTestPreview()">
+                    👁️ Preview Configuration
+                </button>
+            </div>
+            <div id="self-test-status" style="display: none;"></div>
+            <div id="url-info" style="display: none;" class="lcars-alert info">
+                <strong>Current URLs:</strong>
+                <div id="url-details" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+
+        <!-- Preset Selection -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                OIDC Preset Selection
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label class="lcars-label" for="preset-selector">Select OIDC Preset:</label>
+                <select id="preset-selector" class="lcars-select" onchange="loadPresetConfiguration()">
+                    <option value="">-- Select a preset --</option>
+                    <!-- These will be populated by JavaScript -->
+                </select>
+                <button type="button" class="lcars-button info" onclick="loadAvailablePresets()" style="margin-left: 10px;">
+                    Refresh Presets
+                </button>
+            </div>
+            <div id="preset-info" style="display: none;" class="lcars-alert info">
+                <strong>Preset Loaded:</strong> <span id="preset-info-text"></span>
+            </div>
+        </div>
+
+        <!-- Authorization Flow Testing -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Authorization Flow Testing
+            </div>
+            <form id="auth-flow-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="client-id">Client ID</label>
+                    <input type="text" id="client-id" name="clientId" class="lcars-input"
+                           placeholder="my-client-app" required>
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="redirect-uri">Redirect URI</label>
+                    <input type="url" id="redirect-uri" name="redirectUri" class="lcars-input"
+                           placeholder="http://localhost:8080/callback" required>
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="scope">Scope</label>
+                    <input type="text" id="scope" name="scope" class="lcars-input"
+                           value="openid profile email" required>
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="state">State (CSRF Protection)</label>
+                    <input type="text" id="state" name="state" class="lcars-input"
+                           th:value="${#temporals.format(#temporals.createNow(), 'yyyyMMddHHmmss')}">
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="nonce">Nonce (Replay Protection)</label>
+                    <input type="text" id="nonce" name="nonce" class="lcars-input"
+                           th:value="${#strings.randomAlphanumeric(16)}">
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="response-type">Response Type</label>
+                    <select id="response-type" name="responseType" class="lcars-select">
+                        <option value="code" selected>code</option>
+                    </select>
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <button type="button" class="lcars-button" onclick="generateAuthUrl()">
+                        Generate Authorization URL
+                    </button>
+                    <button type="button" class="lcars-button info" onclick="startAuthFlow()">
+                        Start Authorization Flow
+                    </button>
+                    <button type="button" class="lcars-button" onclick="clearAuthForm()">
+                        Clear Form
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Generated Authorization URL -->
+        <div id="auth-url-panel" class="lcars-panel" style="display: none;">
+            <div class="lcars-panel-header">
+                Generated Authorization URL
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label class="lcars-label">Authorization URL:</label>
+                <textarea id="auth-url" class="lcars-input" rows="4" readonly></textarea>
+                <button class="lcars-button" onclick="copyAuthUrl()" style="margin-top: 10px;">
+                    Copy URL
+                </button>
+                <a id="auth-url-link" href="#" target="_blank" class="lcars-button success" style="margin-top: 10px;">
+                    Open in New Tab
+                </a>
+            </div>
+        </div>
+
+        <!-- Token Exchange Testing -->
+        <div class="lcars-panel">
+            <div class="lcars-panel-header">
+                Token Exchange Testing
+            </div>
+            <form id="token-exchange-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="auth-code">Authorization Code</label>
+                    <input type="text" id="auth-code" name="authCode" class="lcars-input"
+                           placeholder="Paste authorization code here" required>
+                </div>
+
+                <div class="lcars-form-group">
+                    <label class="lcars-label" for="token-client-id">Client ID</label>
+                    <input type="text" id="token-client-id" name="tokenClientId" class="lcars-input"
+                           placeholder="my-client-app" required>
+                </div>
+
+                <div class="lcars-form-group" style="grid-column: 1 / -1;">
+                    <label class="lcars-label" for="token-redirect-uri">Redirect URI</label>
+                    <input type="url" id="token-redirect-uri" name="tokenRedirectUri" class="lcars-input"
+                           placeholder="http://localhost:8080/callback" required>
+                </div>
+
+                <div style="grid-column: 1 / -1;">
+                    <button type="button" class="lcars-button" onclick="exchangeToken()">
+                        Exchange for Tokens
+                    </button>
+                    <button type="button" class="lcars-button info" onclick="clearTokenForm()">
+                        Clear Form
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Token Response Display -->
+        <div id="token-response-panel" class="lcars-panel" style="display: none;">
+            <div class="lcars-panel-header">
+                Token Response
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label class="lcars-label">Access Token:</label>
+                <textarea id="access-token" class="lcars-input" rows="6" readonly></textarea>
+                <button class="lcars-button" onclick="copyAccessToken()" style="margin-top: 10px;">
+                    Copy Access Token
+                </button>
+                <button class="lcars-button info" onclick="validateTokenAtJwtIo()" style="margin-top: 10px;">
+                    Validate at jwt.io
+                </button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label class="lcars-label">ID Token:</label>
+                <textarea id="id-token" class="lcars-input" rows="6" readonly></textarea>
+                <button class="lcars-button" onclick="copyIdToken()" style="margin-top: 10px;">
+                    Copy ID Token
+                </button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <label class="lcars-label">Token Type:</label>
+                    <div id="token-type" style="color: var(--lcars-white);"></div>
+                </div>
+                <div>
+                    <label class="lcars-label">Expires In:</label>
+                    <div id="expires-in" style="color: var(--lcars-white);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div id="test-results" style="margin-top: 20px;"></div>
+
+        <!-- Alert Container -->
+        <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    </div>
+</div>
+
+<script>
+// Discovery endpoint testing
+async function testDiscoveryEndpoint() {
+    const resultDiv = document.getElementById('discovery-results');
+    resultDiv.innerHTML = '<div class="lcars-alert info">Testing discovery endpoint...</div>';
+    resultDiv.style.display = 'block';
+
+    try {
+        const response = await fetch('/.well-known/openid_configuration');
+        const metadata = await response.json();
+
+        if (response.ok) {
+            resultDiv.innerHTML = `
+                <div class="lcars-alert success">
+                    <strong>✓ Discovery endpoint working</strong>
+                    <pre style="margin-top: 10px; white-space: pre-wrap;">${JSON.stringify(metadata, null, 2)}</pre>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `<div class="lcars-alert error">Discovery endpoint failed: ${response.status}</div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="lcars-alert error">Discovery endpoint error: ${error.message}</div>`;
+    }
+}
+
+async function testJwksEndpoint() {
+    const resultDiv = document.getElementById('discovery-results');
+    resultDiv.innerHTML = '<div class="lcars-alert info">Testing JWKS endpoint...</div>';
+    resultDiv.style.display = 'block';
+
+    try {
+        const response = await fetch('/oauth/jwks');
+        const jwks = await response.json();
+
+        if (response.ok) {
+            resultDiv.innerHTML = `
+                <div class="lcars-alert success">
+                    <strong>✓ JWKS endpoint working</strong>
+                    <pre style="margin-top: 10px; white-space: pre-wrap;">${JSON.stringify(jwks, null, 2)}</pre>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `<div class="lcars-alert error">JWKS endpoint failed: ${response.status}</div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="lcars-alert error">JWKS endpoint error: ${error.message}</div>`;
+    }
+}
+
+// Authorization flow testing
+function generateAuthUrl() {
+    const form = document.getElementById('auth-flow-form');
+    const formData = new FormData(form);
+
+    const params = new URLSearchParams();
+    params.append('response_type', formData.get('responseType'));
+    params.append('client_id', formData.get('clientId'));
+    params.append('redirect_uri', formData.get('redirectUri'));
+    params.append('scope', formData.get('scope'));
+    if (formData.get('state')) params.append('state', formData.get('state'));
+    if (formData.get('nonce')) params.append('nonce', formData.get('nonce'));
+
+    const authUrl = `/oauth/authorize?${params.toString()}`;
+
+    document.getElementById('auth-url').value = window.location.origin + authUrl;
+    document.getElementById('auth-url-link').href = authUrl;
+    document.getElementById('auth-url-panel').style.display = 'block';
+
+    showAlert('Authorization URL generated', 'success');
+}
+
+function startAuthFlow() {
+    generateAuthUrl();
+    setTimeout(() => {
+        document.getElementById('auth-url-link').click();
+    }, 500);
+}
+
+function copyAuthUrl() {
+    const authUrlField = document.getElementById('auth-url');
+    authUrlField.select();
+    document.execCommand('copy');
+    showAlert('Authorization URL copied to clipboard', 'success');
+}
+
+function clearAuthForm() {
+    document.getElementById('auth-flow-form').reset();
+    document.getElementById('auth-url-panel').style.display = 'none';
+}
+
+// Token exchange testing
+async function exchangeToken() {
+    const form = document.getElementById('token-exchange-form');
+    const formData = new FormData(form);
+
+    const tokenRequest = new URLSearchParams();
+    tokenRequest.append('grant_type', 'authorization_code');
+    tokenRequest.append('code', formData.get('authCode'));
+    tokenRequest.append('client_id', formData.get('tokenClientId'));
+    tokenRequest.append('redirect_uri', formData.get('tokenRedirectUri'));
+
+    try {
+        const response = await fetch('/oauth/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: tokenRequest
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            displayTokenResponse(result);
+            showAlert('Tokens exchanged successfully', 'success');
+        } else {
+            showAlert(`Token exchange failed: ${result.error_description || result.error}`, 'error');
+        }
+    } catch (error) {
+        showAlert('Token exchange error: ' + error.message, 'error');
+    }
+}
+
+function displayTokenResponse(tokenData) {
+    document.getElementById('access-token').value = tokenData.access_token || '';
+    document.getElementById('id-token').value = tokenData.id_token || '';
+    document.getElementById('token-type').textContent = tokenData.token_type || '';
+    document.getElementById('expires-in').textContent = tokenData.expires_in ? tokenData.expires_in + ' seconds' : '';
+    document.getElementById('token-response-panel').style.display = 'block';
+}
+
+function copyAccessToken() {
+    const tokenField = document.getElementById('access-token');
+    tokenField.select();
+    document.execCommand('copy');
+    showAlert('Access token copied to clipboard', 'success');
+}
+
+function copyIdToken() {
+    const tokenField = document.getElementById('id-token');
+    tokenField.select();
+    document.execCommand('copy');
+    showAlert('ID token copied to clipboard', 'success');
+}
+
+function validateTokenAtJwtIo() {
+    const accessToken = document.getElementById('access-token').value;
+    if (accessToken) {
+        const jwtIoUrl = `https://jwt.io/#debugger-io?token=${encodeURIComponent(accessToken)}`;
+        window.open(jwtIoUrl, '_blank');
+    } else {
+        showAlert('No access token to validate', 'warning');
+    }
+}
+
+function clearTokenForm() {
+    document.getElementById('token-exchange-form').reset();
+    document.getElementById('token-response-panel').style.display = 'none';
+}
+
+// Pre-fill form fields from authorization URL
+function prefillFromAuthUrl() {
+    const clientId = document.getElementById('client-id').value;
+    const redirectUri = document.getElementById('redirect-uri').value;
+
+    if (clientId) {
+        document.getElementById('token-client-id').value = clientId;
+    }
+    if (redirectUri) {
+        document.getElementById('token-redirect-uri').value = redirectUri;
+    }
+}
+
+// Auto-fill token form when auth form changes
+document.getElementById('client-id').addEventListener('input', prefillFromAuthUrl);
+document.getElementById('redirect-uri').addEventListener('input', prefillFromAuthUrl);
+
+// Preset management functions
+async function loadAvailablePresets() {
+    try {
+        const response = await fetch('/proxima/api/config/presets');
+        const presets = await response.json();
+
+        const selector = document.getElementById('preset-selector');
+        selector.innerHTML = '<option value="">-- Select a preset --</option>';
+
+        presets.filter(preset => preset.oidcConfig && preset.oidcConfig.enabled)
+               .forEach(preset => {
+            const option = document.createElement('option');
+            option.value = preset.name;
+            option.textContent = `${preset.displayName} (${preset.name})`;
+            option.dataset.preset = JSON.stringify(preset);
+            selector.appendChild(option);
+        });
+
+        if (selector.children.length === 1) {
+            showAlert('No OIDC-enabled presets found', 'warning');
+        } else {
+            showAlert(`Loaded ${selector.children.length - 1} OIDC presets`, 'success');
+        }
+    } catch (error) {
+        showAlert('Failed to load presets: ' + error.message, 'error');
+    }
+}
+
+function loadPresetConfiguration() {
+    const selector = document.getElementById('preset-selector');
+    const selectedOption = selector.options[selector.selectedIndex];
+
+    if (!selectedOption.value) {
+        document.getElementById('preset-info').style.display = 'none';
+        return;
+    }
+
+    try {
+        const preset = JSON.parse(selectedOption.dataset.preset);
+        const oidcConfig = preset.oidcConfig;
+
+        // Auto-populate form fields
+        document.getElementById('client-id').value = oidcConfig.clientId || '';
+        document.getElementById('redirect-uri').value = oidcConfig.redirectUri || '';
+        document.getElementById('scope').value = oidcConfig.scopes ? oidcConfig.scopes.join(' ') : 'openid profile email';
+
+        // Also populate token form
+        document.getElementById('token-client-id').value = oidcConfig.clientId || '';
+        document.getElementById('token-redirect-uri').value = oidcConfig.redirectUri || '';
+
+        // Show preset info
+        const presetInfo = document.getElementById('preset-info');
+        const presetInfoText = document.getElementById('preset-info-text');
+        presetInfoText.textContent = `${preset.displayName} - Subject: ${oidcConfig.subject}, Scopes: ${oidcConfig.scopes ? oidcConfig.scopes.join(', ') : 'N/A'}`;
+        presetInfo.style.display = 'block';
+
+        showAlert(`Loaded configuration from preset: ${preset.displayName}`, 'success');
+    } catch (error) {
+        showAlert('Error loading preset configuration: ' + error.message, 'error');
+    }
+}
+
+// Enhanced alert system
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alert-container');
+    const alert = document.createElement('div');
+    alert.className = `lcars-alert ${type}`;
+    alert.style.marginBottom = '10px';
+    alert.innerHTML = `<strong>${message}</strong>`;
+
+    alertContainer.appendChild(alert);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 5000);
+}
+
+// Global variables for URL info
+let currentUrlInfo = null;
+
+// Self-test functionality
+async function loadDynamicUrls() {
+    try {
+        const response = await fetch('/proxima/api/url-info');
+        currentUrlInfo = await response.json();
+
+        document.getElementById('url-details').innerHTML = `
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; font-size: 0.9rem;">
+                <div style="color: var(--lcars-blue); font-weight: 700;">Base URL:</div>
+                <div style="color: var(--lcars-white); font-family: monospace;">${currentUrlInfo.baseUrl}</div>
+
+                <div style="color: var(--lcars-blue); font-weight: 700;">Authorization URL:</div>
+                <div style="color: var(--lcars-white); font-family: monospace; word-break: break-all;">${currentUrlInfo.authorizationUrl}</div>
+
+                <div style="color: var(--lcars-blue); font-weight: 700;">Token URL:</div>
+                <div style="color: var(--lcars-white); font-family: monospace; word-break: break-all;">${currentUrlInfo.tokenUrl}</div>
+
+                <div style="color: var(--lcars-blue); font-weight: 700;">Callback URL:</div>
+                <div style="color: var(--lcars-white); font-family: monospace; word-break: break-all;">${currentUrlInfo.oidcCallbackUrl}</div>
+
+                <div style="color: var(--lcars-blue); font-weight: 700;">Discovery URL:</div>
+                <div style="color: var(--lcars-white); font-family: monospace; word-break: break-all;">${currentUrlInfo.discoveryUrl}</div>
+            </div>
+        `;
+        document.getElementById('url-info').style.display = 'block';
+
+        showAlert('Dynamic URLs loaded successfully', 'success');
+    } catch (error) {
+        showAlert('Failed to load dynamic URLs: ' + error.message, 'error');
+    }
+}
+
+async function showSelfTestPreview() {
+    if (!currentUrlInfo) {
+        await loadDynamicUrls();
+    }
+
+    document.getElementById('self-test-status').innerHTML = `
+        <div class="lcars-alert info">
+            <strong>Self-Test Configuration Preview</strong>
+            <div style="margin-top: 15px;">
+                <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; font-size: 0.9rem;">
+                    <div style="color: var(--lcars-green); font-weight: 700;">Client ID:</div>
+                    <div style="color: var(--lcars-white); font-family: monospace;">proxima-self-test</div>
+
+                    <div style="color: var(--lcars-green); font-weight: 700;">Redirect URI:</div>
+                    <div style="color: var(--lcars-white); font-family: monospace; word-break: break-all;">${currentUrlInfo.oidcCallbackUrl}</div>
+
+                    <div style="color: var(--lcars-green); font-weight: 700;">Scopes:</div>
+                    <div style="color: var(--lcars-white); font-family: monospace;">openid profile email groups</div>
+
+                    <div style="color: var(--lcars-green); font-weight: 700;">Flow Type:</div>
+                    <div style="color: var(--lcars-white);">Authorization Code Flow</div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('self-test-status').style.display = 'block';
+}
+
+async function startSelfTest() {
+    if (!currentUrlInfo) {
+        await loadDynamicUrls();
+    }
+
+    const state = 'self-test-' + Math.random().toString(36).substring(2, 15);
+    const nonce = 'self-test-nonce-' + Math.random().toString(36).substring(2, 15);
+
+    document.getElementById('self-test-status').innerHTML = `
+        <div class="lcars-alert info">
+            <strong>🚀 Starting Self-Test Flow...</strong>
+            <div style="margin-top: 10px;">
+                <div>✓ Generating authorization URL</div>
+                <div>✓ Using client: proxima-self-test</div>
+                <div>✓ Redirect URI: ${currentUrlInfo.oidcCallbackUrl}</div>
+                <div>✓ State: ${state}</div>
+            </div>
+        </div>
+    `;
+    document.getElementById('self-test-status').style.display = 'block';
+
+    // Build authorization URL
+    const authParams = new URLSearchParams({
+        response_type: 'code',
+        client_id: 'proxima-self-test',
+        redirect_uri: currentUrlInfo.oidcCallbackUrl,
+        scope: 'openid profile email groups',
+        state: state,
+        nonce: nonce
+    });
+
+    const authUrl = `${currentUrlInfo.authorizationUrl}?${authParams.toString()}`;
+
+    // Update status and redirect
+    setTimeout(() => {
+        document.getElementById('self-test-status').innerHTML = `
+            <div class="lcars-alert warning">
+                <strong>🔄 Redirecting to authorization endpoint...</strong>
+                <div style="margin-top: 10px;">
+                    <div>Redirecting to: ${currentUrlInfo.authorizationUrl}</div>
+                    <div>You will be redirected back after authorization</div>
+                </div>
+            </div>
+        `;
+
+        // Open in same window for self-test
+        setTimeout(() => {
+            window.location.href = authUrl;
+        }, 1000);
+    }, 1000);
+}
+
+// Listen for callback messages if using popup mode
+window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin) return;
+
+    if (event.data.type === 'oidc-callback') {
+        const { authCode, state } = event.data;
+
+        document.getElementById('self-test-status').innerHTML = `
+            <div class="lcars-alert success">
+                <strong>✓ Authorization successful!</strong>
+                <div style="margin-top: 10px;">
+                    <div>Authorization code received: ${authCode.substring(0, 20)}...</div>
+                    <div>State verified: ${state}</div>
+                </div>
+            </div>
+        `;
+
+        // Auto-populate token exchange form
+        document.getElementById('auth-code').value = authCode;
+        document.getElementById('token-client-id').value = 'proxima-self-test';
+        document.getElementById('token-redirect-uri').value = currentUrlInfo.oidcCallbackUrl;
+
+        showAlert('Self-test authorization completed! Ready for token exchange.', 'success');
+    }
+});
+
+// Generate random values for state and nonce on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('state').value) {
+        document.getElementById('state').value = Math.random().toString(36).substring(2, 15);
+    }
+    if (!document.getElementById('nonce').value) {
+        document.getElementById('nonce').value = Math.random().toString(36).substring(2, 15);
+    }
+
+    // Auto-load presets and URLs on page load
+    loadAvailablePresets();
+    loadDynamicUrls();
+});
+</script>
+</body>
+</html>

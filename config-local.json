@@ -37,6 +37,31 @@
     },
     "displayName" : "API Client",
     "headerMappings" : { }
+  }, {
+    "name" : "oidc_demo",
+    "headers" : {
+      "X-Forwarded-By" : "Proxima-Proxy"
+    },
+    "displayName" : "OIDC Demo User",
+    "headerMappings" : { },
+    "oidcConfig" : {
+      "enabled" : true,
+      "subject" : "demo@example.com",
+      "clientId" : "proxima-self-test",
+      "redirectUri" : "http://localhost:8080/proxima/ui/oidc-testing/callback",
+      "scopes" : [ "openid", "profile", "email", "groups" ],
+      "tokenExpirationSeconds" : 3600,
+      "algorithm" : "RS256",
+      "keyId" : "default",
+      "email" : "demo@example.com",
+      "name" : "Demo User",
+      "preferredUsername" : "demouser",
+      "groups" : [ "users", "demo" ],
+      "customClaims" : {
+        "department" : "demo",
+        "role" : "user"
+      }
+    }
   } ],
   "routes" : [ {
     "description" : "User management API",
@@ -63,6 +88,6 @@
     "pathPattern" : "/api/**",
     "targetUrl" : "http://localhost:8081"
   } ],
-  "activePreset" : "admin_user",
+  "activePreset" : "regular_user",
   "reservedRoutes" : [ "/proxima/**", "/actuator/**" ]
 }

@@ -1,6 +1,7 @@
 package com.freesidenomad.proxima.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.freesidenomad.proxima.model.oidc.OidcPresetConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,9 @@ public class ProximaConfig {
         @JsonProperty("headerMappings")
         private java.util.Map<String, String> headerMappings = new java.util.HashMap<>();
 
+        @JsonProperty("oidcConfig")
+        private OidcPresetConfig oidcConfig;
+
         public String getName() {
             return name;
         }
@@ -71,6 +75,14 @@ public class ProximaConfig {
 
         public void setHeaderMappings(java.util.Map<String, String> headerMappings) {
             this.headerMappings = headerMappings != null ? new java.util.HashMap<>(headerMappings) : new java.util.HashMap<>();
+        }
+
+        public OidcPresetConfig getOidcConfig() {
+            return oidcConfig;
+        }
+
+        public void setOidcConfig(OidcPresetConfig oidcConfig) {
+            this.oidcConfig = oidcConfig;
         }
     }
 

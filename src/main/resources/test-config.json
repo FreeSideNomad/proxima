@@ -7,52 +7,81 @@
     {
       "name": "default",
       "displayName": "Default Test User",
-      "oidcSubject": "test-user-123",
-      "oidcClaims": {
-        "preferred_username": "testuser",
-        "email": "testuser@example.com",
-        "role": "user",
-        "department": "Engineering"
-      },
-      "tokenExpiry": 3600,
       "headers": {
         "X-User-Role": "user",
         "X-User-ID": "test-user-123"
       },
-      "headerMappings": {}
+      "headerMappings": {},
+      "oidcConfig": {
+        "enabled": true,
+        "subject": "test-user-123",
+        "clientId": "test-client",
+        "redirectUri": "http://localhost:8080/oauth2/callback",
+        "scopes": ["openid", "profile", "email"],
+        "tokenExpirationSeconds": 3600,
+        "algorithm": "RS256",
+        "keyId": "default",
+        "email": "testuser@example.com",
+        "name": "Test User",
+        "preferredUsername": "testuser",
+        "groups": ["users", "engineering"],
+        "customClaims": {
+          "role": "user",
+          "department": "Engineering"
+        }
+      }
     },
     {
       "name": "admin",
       "displayName": "Test Admin User",
-      "oidcSubject": "admin-test-123",
-      "oidcClaims": {
-        "preferred_username": "testadmin",
-        "email": "testadmin@example.com",
-        "role": "admin",
-        "department": "IT"
-      },
-      "tokenExpiry": 7200,
       "headers": {
         "X-User-Role": "admin",
         "X-User-ID": "admin-test-123"
       },
-      "headerMappings": {}
+      "headerMappings": {},
+      "oidcConfig": {
+        "enabled": true,
+        "subject": "admin-test-123",
+        "clientId": "test-client",
+        "redirectUri": "http://localhost:8080/oauth2/callback",
+        "scopes": ["openid", "profile", "email", "admin"],
+        "tokenExpirationSeconds": 7200,
+        "algorithm": "RS256",
+        "keyId": "default",
+        "email": "testadmin@example.com",
+        "name": "Test Admin User",
+        "preferredUsername": "testadmin",
+        "groups": ["users", "admins", "it"],
+        "customClaims": {
+          "role": "admin",
+          "department": "IT"
+        }
+      }
     },
     {
       "name": "api_client",
       "displayName": "Test API Client",
-      "oidcSubject": "api-client-test-123",
-      "oidcClaims": {
-        "preferred_username": "testapiclient",
-        "client_type": "api",
-        "scope": "read write"
-      },
-      "tokenExpiry": 1800,
       "headers": {
         "X-Client-Type": "api",
         "X-Client-ID": "api-client-test-123"
       },
-      "headerMappings": {}
+      "headerMappings": {},
+      "oidcConfig": {
+        "enabled": true,
+        "subject": "api-client-test-123",
+        "clientId": "test-api-client",
+        "redirectUri": "http://localhost:8080/oauth2/callback",
+        "scopes": ["openid", "api"],
+        "tokenExpirationSeconds": 1800,
+        "algorithm": "RS256",
+        "keyId": "default",
+        "preferredUsername": "testapiclient",
+        "groups": ["api-clients"],
+        "customClaims": {
+          "client_type": "api",
+          "scope": "read write"
+        }
+      }
     }
   ],
   "routes": [
@@ -60,7 +89,8 @@
       "pathPattern": "/api/**",
       "targetUrl": "http://localhost:3001",
       "description": "Test API routes",
-      "enabled": true
+      "enabled": true,
+      "priority": 100
     }
   ],
   "reservedRoutes": [
@@ -68,13 +98,5 @@
     "/actuator/**",
     "/oauth2/**",
     "/.well-known/**"
-  ],
-  "oidc": {
-    "issuer": "http://localhost:8080",
-    "clientId": "test-client",
-    "defaultExpiry": 3600,
-    "supportedScopes": ["openid", "profile", "email"],
-    "supportedGrantTypes": ["authorization_code"],
-    "supportedResponseTypes": ["code"]
-  }
+  ]
 }

@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/oauth")
+@RequestMapping("/oauth2")
 @Tag(name = "OAuth", description = "OAuth 2.0 / OIDC authorization endpoints")
 public class OAuthController {
 

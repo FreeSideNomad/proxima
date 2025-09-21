@@ -27,7 +27,7 @@ public class OidcDiscoveryController {
     @Value("${proxima.oidc.issuer:#{null}}")
     private String configuredIssuer;
 
-    @GetMapping(value = "/.well-known/openid_configuration", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/.well-known/openid-configuration", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         summary = "OpenID Connect Discovery",
         description = "Returns OpenID Connect provider metadata"
@@ -40,9 +40,9 @@ public class OidcDiscoveryController {
 
         OidcDiscoveryResponse response = OidcDiscoveryResponse.builder()
             .issuer(issuer)
-            .authorizationEndpoint(issuer + "/oauth/authorize")
-            .tokenEndpoint(issuer + "/oauth/token")
-            .jwksUri(issuer + "/oauth/jwks")
+            .authorizationEndpoint(issuer + "/oauth2/authorize")
+            .tokenEndpoint(issuer + "/oauth2/token")
+            .jwksUri(issuer + "/.well-known/jwks.json")
             .responseTypesSupported(Arrays.asList("code"))
             .subjectTypesSupported(Arrays.asList("public"))
             .idTokenSigningAlgValuesSupported(Arrays.asList("RS256"))
@@ -60,7 +60,7 @@ public class OidcDiscoveryController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(value = "/oauth/jwks", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/.well-known/jwks.json", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
         summary = "JSON Web Key Set",
         description = "Returns the public keys used for token verification"

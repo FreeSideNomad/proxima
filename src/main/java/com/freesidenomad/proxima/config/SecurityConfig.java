@@ -14,7 +14,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @ConditionalOnMissingBean(name = "testJwtDecoder")
-@Profile("!test")
 public class SecurityConfig {
 
     @Bean
@@ -23,6 +22,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
+                // Allow access to OIDC discovery endpoints
+                .requestMatchers("/.well-known/**").permitAll()
+                // Allow access to OAuth2 endpoints
+                .requestMatchers("/oauth2/**").permitAll()
                 // Allow access to JWKS endpoint (needed for OAuth discovery)
                 .requestMatchers("/proxima/api/jwt/.well-known/jwks.json").permitAll()
                 // Allow access to JWT management endpoints

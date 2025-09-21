@@ -1,0 +1,39 @@
+spring:
+  profiles: test
+  application:
+    name: proxima-test
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.freesidenomad.proxima: DEBUG
+    org.springframework.web: INFO
+    io.jsonwebtoken: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Test-specific configuration for OIDC features
+proxima:
+  config:
+    file-path: "classpath:test-config.json"
+  oidc:
+    issuer: "http://localhost:8080"
+    client-id: "test-client"
+    default-expiry: 3600
+    supported-scopes:
+      - "openid"
+      - "profile"
+      - "email"
+    supported-grant-types:
+      - "authorization_code"
+    supported-response-types:
+      - "code"

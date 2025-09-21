@@ -1,0 +1,80 @@
+{
+  "downstream": {
+    "url": "http://localhost:3001"
+  },
+  "activePreset": "default",
+  "presets": [
+    {
+      "name": "default",
+      "displayName": "Default Test User",
+      "oidcSubject": "test-user-123",
+      "oidcClaims": {
+        "preferred_username": "testuser",
+        "email": "testuser@example.com",
+        "role": "user",
+        "department": "Engineering"
+      },
+      "tokenExpiry": 3600,
+      "headers": {
+        "X-User-Role": "user",
+        "X-User-ID": "test-user-123"
+      },
+      "headerMappings": {}
+    },
+    {
+      "name": "admin",
+      "displayName": "Test Admin User",
+      "oidcSubject": "admin-test-123",
+      "oidcClaims": {
+        "preferred_username": "testadmin",
+        "email": "testadmin@example.com",
+        "role": "admin",
+        "department": "IT"
+      },
+      "tokenExpiry": 7200,
+      "headers": {
+        "X-User-Role": "admin",
+        "X-User-ID": "admin-test-123"
+      },
+      "headerMappings": {}
+    },
+    {
+      "name": "api_client",
+      "displayName": "Test API Client",
+      "oidcSubject": "api-client-test-123",
+      "oidcClaims": {
+        "preferred_username": "testapiclient",
+        "client_type": "api",
+        "scope": "read write"
+      },
+      "tokenExpiry": 1800,
+      "headers": {
+        "X-Client-Type": "api",
+        "X-Client-ID": "api-client-test-123"
+      },
+      "headerMappings": {}
+    }
+  ],
+  "routes": [
+    {
+      "pathPattern": "/api/**",
+      "targetUrl": "http://localhost:3001",
+      "description": "Test API routes",
+      "enabled": true
+    }
+  ],
+  "reservedRoutes": [
+    "/proxima/**",
+    "/actuator/**",
+    "/oauth2/**",
+    "/.well-known/**"
+  ],
+  "oidc": {
+    "issuer": "http://localhost:8080",
+    "clientId": "test-client",
+    "defaultExpiry": 3600,
+    "supportedScopes": ["openid", "profile", "email"],
+    "supportedGrantTypes": ["authorization_code"],
+    "supportedResponseTypes": ["code"]
+  }
+}

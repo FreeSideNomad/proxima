@@ -128,4 +128,22 @@ public class ConfigurationService {
     public List<String> validateConfiguration() {
         return validator.validatePresets(proximaProperties.getPresets());
     }
+
+    /**
+     * Get preset by name - alias for getPresetByName().
+     * Used by OidcTokenService for consistency.
+     */
+    public HeaderPreset getPreset(String name) {
+        return getPresetByName(name).orElse(null);
+    }
+
+    /**
+     * Get all OIDC-enabled presets.
+     * Used by OidcTokenService for startup token generation.
+     */
+    public List<HeaderPreset> getOidcEnabledPresets() {
+        return getAllPresets().stream()
+                .filter(HeaderPreset::isOidcEnabled)
+                .collect(Collectors.toList());
+    }
 }

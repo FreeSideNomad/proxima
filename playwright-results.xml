@@ -1,2 +1,218 @@
-<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="11.550550999999999">
+<testsuites id="" name="" tests="8" failures="6" skipped="0" errors="0" time="18.062807">
+<testsuite name="oidc-flow.spec.js" timestamp="2025-09-21T21:49:17.784Z" hostname="chromium" tests="8" failures="6" skipped="0" time="11.114" errors="0">
+<testcase name="OIDC Authentication Flow › should display OIDC discovery endpoint" classname="oidc-flow.spec.js" time="1.575">
+</testcase>
+<testcase name="OIDC Authentication Flow › should handle authorization code flow redirect" classname="oidc-flow.spec.js" time="3.055">
+<failure message="oidc-flow.spec.js:22:3 should handle authorization code flow redirect" type="FAILURE">
+<![CDATA[  [chromium] › oidc-flow.spec.js:22:3 › OIDC Authentication Flow › should handle authorization code flow redirect 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email&state=test-state-123
+    Call log:
+      - navigating to "http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email&state=test-state-123", waiting until "load"
+
+
+      30 |     });
+      31 |
+    > 32 |     const response = await page.goto(authUrl);
+         |                                 ^
+      33 |
+      34 |     // Should redirect back with authorization code
+      35 |     expect(response.status()).toBe(302);
+        at /Users/igor/code/proxima/tests/e2e/oidc-flow.spec.js:32:33
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-d0f9a-rization-code-flow-redirect-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-d0f9a-rization-code-flow-redirect-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-d0f9a-rization-code-flow-redirect-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-d0f9a-rization-code-flow-redirect-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="OIDC Authentication Flow › should exchange authorization code for tokens" classname="oidc-flow.spec.js" time="0.821">
+<failure message="oidc-flow.spec.js:42:3 should exchange authorization code for tokens" type="FAILURE">
+<![CDATA[  [chromium] › oidc-flow.spec.js:42:3 › OIDC Authentication Flow › should exchange authorization code for tokens 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email&state=test-state-123
+    Call log:
+      - navigating to "http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email&state=test-state-123", waiting until "load"
+
+
+      50 |     });
+      51 |
+    > 52 |     const authResponse = await page.goto(authUrl);
+         |                                     ^
+      53 |     const location = authResponse.headers()['location'];
+      54 |     const code = new URL(location).searchParams.get('code');
+      55 |
+        at /Users/igor/code/proxima/tests/e2e/oidc-flow.spec.js:52:37
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-95d2e-thorization-code-for-tokens-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-95d2e-thorization-code-for-tokens-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-95d2e-thorization-code-for-tokens-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-95d2e-thorization-code-for-tokens-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="OIDC Authentication Flow › should validate JWT token structure" classname="oidc-flow.spec.js" time="1.122">
+<failure message="oidc-flow.spec.js:75:3 should validate JWT token structure" type="FAILURE">
+<![CDATA[  [chromium] › oidc-flow.spec.js:75:3 › OIDC Authentication Flow › should validate JWT token structure 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email
+    Call log:
+      - navigating to "http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email", waiting until "load"
+
+
+      82 |     });
+      83 |
+    > 84 |     const authResponse = await page.goto(authUrl);
+         |                                     ^
+      85 |     const location = authResponse.headers()['location'];
+      86 |     const code = new URL(location).searchParams.get('code');
+      87 |
+        at /Users/igor/code/proxima/tests/e2e/oidc-flow.spec.js:84:37
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-d0bfa-alidate-JWT-token-structure-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-d0bfa-alidate-JWT-token-structure-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-d0bfa-alidate-JWT-token-structure-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-d0bfa-alidate-JWT-token-structure-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="OIDC Authentication Flow › should support different user presets" classname="oidc-flow.spec.js" time="1.24">
+<failure message="oidc-flow.spec.js:113:3 should support different user presets" type="FAILURE">
+<![CDATA[  [chromium] › oidc-flow.spec.js:113:3 › OIDC Authentication Flow › should support different user presets 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/oauth2/authorize?preset=default&response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email
+    Call log:
+      - navigating to "http://localhost:8080/oauth2/authorize?preset=default&response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email", waiting until "load"
+
+
+      123 |       });
+      124 |
+    > 125 |       const authResponse = await page.goto(authUrl);
+          |                                       ^
+      126 |       const location = authResponse.headers()['location'];
+      127 |       const code = new URL(location).searchParams.get('code');
+      128 |
+        at /Users/igor/code/proxima/tests/e2e/oidc-flow.spec.js:125:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-eebef-port-different-user-presets-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-eebef-port-different-user-presets-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-eebef-port-different-user-presets-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-eebef-port-different-user-presets-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="OIDC Authentication Flow › should provide JWKS endpoint for token validation" classname="oidc-flow.spec.js" time="1.446">
+</testcase>
+<testcase name="OIDC Authentication Flow › should cache tokens efficiently" classname="oidc-flow.spec.js" time="1.188">
+<failure message="oidc-flow.spec.js:168:3 should cache tokens efficiently" type="FAILURE">
+<![CDATA[  [chromium] › oidc-flow.spec.js:168:3 › OIDC Authentication Flow › should cache tokens efficiently 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email
+    Call log:
+      - navigating to "http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email", waiting until "load"
+
+
+      178 |
+      179 |     // First request
+    > 180 |     const authResponse1 = await page.goto(authUrl);
+          |                                      ^
+      181 |     const code1 = new URL(authResponse1.headers()['location']).searchParams.get('code');
+      182 |
+      183 |     const tokenResponse1 = await page.request.post('/oauth2/token', {
+        at /Users/igor/code/proxima/tests/e2e/oidc-flow.spec.js:180:38
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-7f669-ld-cache-tokens-efficiently-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-7f669-ld-cache-tokens-efficiently-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-7f669-ld-cache-tokens-efficiently-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-7f669-ld-cache-tokens-efficiently-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="OIDC Authentication Flow › should handle token expiration" classname="oidc-flow.spec.js" time="0.667">
+<failure message="oidc-flow.spec.js:222:3 should handle token expiration" type="FAILURE">
+<![CDATA[  [chromium] › oidc-flow.spec.js:222:3 › OIDC Authentication Flow › should handle token expiration ─
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email
+    Call log:
+      - navigating to "http://localhost:8080/oauth2/authorize?response_type=code&client_id=test-client&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=openid+profile+email", waiting until "load"
+
+
+      230 |     });
+      231 |
+    > 232 |     const authResponse = await page.goto(authUrl);
+          |                                     ^
+      233 |     const code = new URL(authResponse.headers()['location']).searchParams.get('code');
+      234 |
+      235 |     const tokenResponse = await page.request.post('/oauth2/token', {
+        at /Users/igor/code/proxima/tests/e2e/oidc-flow.spec.js:232:37
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-42e16-uld-handle-token-expiration-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/oidc-flow-OIDC-Authenticat-42e16-uld-handle-token-expiration-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-42e16-uld-handle-token-expiration-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|test-results/oidc-flow-OIDC-Authenticat-42e16-uld-handle-token-expiration-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
 </testsuites>
